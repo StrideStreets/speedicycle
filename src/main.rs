@@ -31,6 +31,15 @@ fn main() {
             &trimmed_graph.graph.edge_count()
         );
 
-        double_path::<StableDiGraph<u32, f64, u32>, f64, u32>(NodeIndex::new(12), trimmed_graph);
+        if let Some((lower_bound, upper_bound)) =
+            double_path::<StableDiGraph<u32, f64, u32>, f64, u32>(
+                NodeIndex::new(12),
+                trimmed_graph,
+                4000.0,
+            )
+        {
+            println!("Upper bound: {:?}", upper_bound);
+            println!("Lower bound: {:?}", lower_bound);
+        }
     }
 }

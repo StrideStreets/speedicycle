@@ -1,6 +1,5 @@
 use anyhow::{anyhow, Error};
 use itertools::Itertools;
-use num::integer;
 use std::collections::HashMap;
 use std::fmt::Debug;
 use std::fs;
@@ -38,7 +37,7 @@ where
     if let Some(content) = fs::read_to_string(filepath).ok() {
         let mut lines = content.lines();
 
-        let size_tuple = lines.next();
+        let _size_tuple = lines.next();
         lines.for_each(|line| match line.chars().nth(0).expect("Empty line") {
             'e' => edges.push(line.split_whitespace().skip(1).take(3).collect()),
             'v' => nodes.push(line.split_whitespace().skip(1).collect()),

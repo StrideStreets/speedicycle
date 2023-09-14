@@ -1,63 +1,30 @@
 mod bhandari;
-mod dijkstra_src;
-mod modified_dijkstra;
-mod moore;
 mod path;
 mod scored;
 
-use self::{
-    bhandari::{get_edge_disjoint_path, get_path_from_previous, unweave_paths},
-    dijkstra_src::simplified_dijkstra,
-    moore::WalkableNeighbors,
-    path::FindEdge,
-};
+use self::bhandari::{get_edge_disjoint_path, get_path_from_previous, unweave_paths};
 use crate::io::GraphRepresentation;
-use graphalgs::shortest_path::spfa;
 use num::Bounded;
 use petgraph::{
     algo::{
         bellman_ford::{bellman_ford, Paths},
-        FloatMeasure, Measure,
+        dijkstra, FloatMeasure, Measure,
     },
     data::DataMap,
     prelude::EdgeIndex,
-    stable_graph::{IndexType, NodeIndex, StableDiGraph, WalkNeighbors},
-    visit::{
-        Data, GraphBase, IntoEdges, IntoNeighbors, IntoNodeIdentifiers, NodeIndexable, Visitable,
-    },
+    stable_graph::{IndexType, NodeIndex, StableDiGraph},
+    visit::{Data, GraphBase, IntoEdges, NodeIndexable, Visitable},
 };
 use scored::MaxScored;
 use std::{
     collections::{BinaryHeap, HashMap, HashSet},
     hash::Hash,
-    ops::RangeFrom,
 };
 use std::{
     fmt::Debug,
     ops::{Add, AddAssign, Div, Mul, Neg, RemAssign},
 };
 
-// pub trait CalculableGraphWeight<K>
-// where
-//     K: Copy + Ord + Measure + Neg<Output = K> + Mul<Output = K> + RemAssign + Bounded,
-// {
-// }
-// pub trait RoutableGraph<G, K>
-// where
-//     G: IntoEdges
-//         + Visitable
-//         + Data<EdgeWeight = K>
-//         + Data<NodeWeight = K>
-//         + DataMap
-//         + GraphBase<NodeId = NodeIndex>
-//         + NodeIndexable
-//         + IndexType
-//         + FindEdge<G>,
-//     G::EdgeId: IndexType,
-//     G::Neighbors: WalkableNeighbors<G>,
-//     K: CalculableGraphWeight<K>,
-// {
-// }
 #[derive(Debug)]
 pub struct BandhariGraph<G, E, Ix>
 where
@@ -126,42 +93,16 @@ where
     return g;
 }
 
-// pub fn get_distances<G, F, K>(
-//     g: G,
-//     starting_node: &G::NodeId,
-//     max_dist: K,
-// ) -> HashMap<<G as GraphBase>::NodeId, K>
-// where
-//     G: IntoEdges + Visitable + Data<EdgeWeight = K>,
-//     G::NodeId: Eq + Hash,
-//     K: Copy + Measure,
-// {
-//     let edge_cost_fn = |e: <G as IntoEdgeReferences>::EdgeRef| {
-//         let weight = *e.weight();
-//         return weight;
-//     };
-
-//     let dists = modified_dijkstra(g, *starting_node, edge_cost_fn, max_dist);
-
-//     return dists;
-// }
-
 pub fn get_distances<N, E, Ix>(
     g: &StableDiGraph<N, E, Ix>,
     starting_node: NodeIndex<Ix>,
 ) -> HashMap<NodeIndex<Ix>, E>
 where
-    E: Copy + Measure,
-
+    E: Copy + Measure + Default + Add,
     Ix: IndexType,
 {
-    // let edge_cost_fn = |e: <&StableDiGraph<usize, isize, u32> as IntoEdgeReferences>::EdgeRef| {
-    //     let weight = *e.weight();
-    //     return weight;
-    // };
-
-    return simplified_dijkstra(g, starting_node);
-    // modified_dijkstra(g, starting_node, edge_cost_fn, max_dist);
+    return dijkstra(g, starting_node, None, |e| *e.weight());
+    //return simplified_dijkstra(g, starting_node);
 }
 
 pub fn trim_graph_at_max_distance<N, E, Ix>(
@@ -174,23 +115,6 @@ where
     N: Clone,
     Ix: IndexType,
 {
-    //let mut local_g = g.clone();
-    // let node_mapper = |node_id: NodeIndex, node_weight: &usize| match distance_map.get(&node_id) {
-    //     Some(val) => {
-    //         if (val > &max_dist) {
-    //             return None;
-    //         } else {
-    //             return Some(*node_weight);
-    //         }
-    //     }
-    //     None => return None,
-    // };
-
-    // let edge_mapper = |_edge_id: EdgeIndex, edge_weight: &isize| {
-    //     return Some(*edge_weight);
-    // };
-
-    // let trimmed_graph = g.filter_map(node_mapper, edge_mapper);
     let local_g = g.clone();
     let mut node_indices = local_g.node_indices().clone();
     while let Some(node) = node_indices.next() {
@@ -207,16 +131,16 @@ where
     }
 
     //Calculate constant for Bandhari's algorithm
-    let mut INF2 = E::default();
+    let mut inf2 = E::default();
     g.edge_weights().for_each(|w| {
-        INF2 += *w;
+        inf2 += *w;
     });
 
-    INF2 = (INF2 / 2.0) + 1.0;
+    inf2 = (inf2 / 2.0) + 1.0;
 
     return BandhariGraph {
         graph: g,
-        inf_2: INF2,
+        inf_2: inf2,
     };
 }
 
@@ -244,7 +168,7 @@ where
         .zip(paths.distances.into_iter())
         .map(|(i, cost)| (NodeIndex::<Ix>::from(i), cost))
         .for_each(|(node, cost)| {
-            if let Some(pred) = predecessor_map.get(&node) {
+            if let Some(_) = predecessor_map.get(&node) {
                 distance_map.insert(node, cost);
             }
         });
@@ -255,19 +179,30 @@ where
 pub fn double_path<G, E, Ix>(
     source: NodeIndex<Ix>,
     rg: BandhariGraph<StableDiGraph<G::NodeWeight, E, Ix>, E, Ix>,
-) where
+    target_length: E,
+) -> Option<(EulerGraph<G, E>, EulerGraph<G, E>)>
+where
     G: Visitable
         + Data<EdgeWeight = E>
         + DataMap
         + GraphBase<NodeId = NodeIndex<Ix>, EdgeId = EdgeIndex<Ix>>
         + NodeIndexable
         + Debug,
-    //+ IntoNeighbors<Neighbors = WalkNeighbors<Ix>>,
     G::NodeWeight: Clone + Debug,
-    E: Copy + FloatMeasure + Neg<Output = E> + Mul<Output = E> + RemAssign + Bounded,
+    E: Copy + FloatMeasure + Neg<Output = E> + Mul<Output = E> + RemAssign + AddAssign + Bounded,
     Ix: IndexType,
     NodeIndex<Ix>: From<u32>,
 {
+    let mut _iterations = 0;
+
+    let mut h_lower = EulerGraph::<G, E>::new();
+    h_lower.length = E::min_value();
+
+    let mut h_upper = EulerGraph::<G, E>::new();
+    h_upper.length = E::max_value();
+
+    let mut failed_nodes: HashSet<NodeIndex<Ix>> = HashSet::new();
+
     if let Ok(paths) = bellman_ford(&rg.graph, source) {
         let (distance_map, predecessor_map) = path_results_to_distance_and_predecessors(paths);
         let mut max_dist_heap = BinaryHeap::new();
@@ -276,20 +211,54 @@ pub fn double_path<G, E, Ix>(
             .into_iter()
             .for_each(|(node, weight)| max_dist_heap.push(MaxScored(weight, node)));
 
-        while let Some(MaxScored(node_score, node)) = max_dist_heap.pop() {
+        while let Some(MaxScored(_node_score, node)) = max_dist_heap.pop() {
             println!("Popped node {:?}", &node);
+            if let Some(_) = failed_nodes.get(&node) {
+                continue;
+            }
             if let Some(p1) =
                 get_path_from_previous::<G, E>(source, node, &predecessor_map, &distance_map)
             {
                 println!("Path One: {:?}", &p1);
                 if let Some(p2) = get_edge_disjoint_path(&rg, &p1) {
-                    println!("Path Two: {:?}", &p2);
-                    println!("{:?}", unweave_paths(p1, p2));
+                    let mut h = unweave_paths(p1, p2);
+
+                    h.edges.iter().for_each(|(u, v)| {
+                        if let Some(e) = rg.graph.find_edge(*u, *v) {
+                            h.length += *rg.graph.edge_weight(e).unwrap();
+                        } else {
+                            if let Some(e) = rg.graph.find_edge(*v, *u) {
+                                h.length += *rg.graph.edge_weight(e).unwrap();
+                            }
+                        }
+                    });
+                    _iterations += 1;
+
+                    if h.length < target_length {
+                        h.vertices.iter().for_each(|node| {
+                            failed_nodes.insert(*node);
+                        });
+
+                        if h_lower.length < h.length {
+                            h_lower = h;
+                        }
+                    } else if h.length >= target_length {
+                        if h_upper.length > h.length {
+                            h_upper = h;
+                        }
+                        //todo!("Add optimization to add to failed nodes all nodes whose shortest path runs through t");
+                    }
+
+                    if h_upper.length == h_lower.length {
+                        break;
+                    }
                 }
             }
         }
+        return Some((h_lower, h_upper));
     } else {
         println!("Failed to execute first instance of bellman_ford");
+        return None;
     }
 
     //Need to define Euler graph with upper and lower performance bounds

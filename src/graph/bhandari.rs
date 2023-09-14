@@ -1,18 +1,12 @@
 use crate::graph::{
-    moore::{moore_shortest_s_t_path, WalkableNeighbors},
-    path::{FindEdge, Path},
-    path_results_to_distance_and_predecessors, BandhariGraph, EulerGraph,
+    path::Path, path_results_to_distance_and_predecessors, BandhariGraph, EulerGraph,
 };
-use anyhow::Error;
 use num::Bounded;
 use petgraph::{
     algo::{bellman_ford, FloatMeasure, Measure},
     data::DataMap,
-    stable_graph::{IndexType, NodeIndex, StableDiGraph, WalkNeighbors},
-    visit::{
-        Data, GraphBase, IntoEdgeReferences, IntoEdges, IntoNeighbors, IntoNodeIdentifiers,
-        NodeIndexable, Visitable,
-    },
+    stable_graph::{IndexType, NodeIndex, StableDiGraph},
+    visit::{Data, GraphBase, NodeIndexable, Visitable},
 };
 use std::{
     collections::HashMap,
@@ -81,7 +75,7 @@ where
         //Continue here translating from Bhandari.cpp line 26
         let u = &p.sequence[i];
         let v = &p.sequence[(i + 1)];
-        let mut w: <G as Data>::EdgeWeight = E::max_value();
+        let mut w: <G as Data>::EdgeWeight;
 
         //Remove edges
         if let Some(edge_id) = g.find_edge(*u, *v) {
