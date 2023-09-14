@@ -1,16 +1,20 @@
 use anyhow::{anyhow, Error};
 use itertools::Itertools;
+use num::integer;
 use std::collections::HashMap;
+use std::fmt::Debug;
 use std::fs;
+use std::hash::Hash;
+use std::str::FromStr;
 
 #[derive(Debug)]
-pub struct GraphRepresentation {
-    pub node_map: HashMap<usize, usize>,
-    pub edge_list: Vec<(usize, usize, isize)>,
+pub struct GraphRepresentation<N, E, Ix> {
+    pub node_map: HashMap<Ix, N>,
+    pub edge_list: Vec<(Ix, Ix, E)>,
 }
 
-impl GraphRepresentation {
-    fn new(n: HashMap<usize, usize>, e: Vec<(usize, usize, isize)>) -> GraphRepresentation {
+impl<N, E, Ix> GraphRepresentation<N, E, Ix> {
+    fn new(n: HashMap<Ix, N>, e: Vec<(Ix, Ix, E)>) -> GraphRepresentation<N, E, Ix> {
         return GraphRepresentation {
             node_map: n,
             edge_list: e,
@@ -18,9 +22,16 @@ impl GraphRepresentation {
     }
 }
 
-pub fn read_from_dimacs(filepath: &str) -> Result<GraphRepresentation, Error> {
-    let mut node_map = HashMap::<usize, usize>::new();
-    let mut edge_list = Vec::<(usize, usize, isize)>::new();
+pub fn read_from_dimacs<N, E, Ix>(filepath: &str) -> Result<GraphRepresentation<N, E, Ix>, Error>
+where
+    Ix: FromStr + Eq + Hash + TryFrom<u32>,
+    Ix::Err: Debug,
+    <Ix as TryFrom<u32>>::Error: Debug,
+    N: FromStr,
+    E: From<Ix>,
+{
+    let mut node_map = HashMap::<Ix, N>::new();
+    let mut edge_list = Vec::<(Ix, Ix, E)>::new();
     let mut nodes = Vec::<Vec<&str>>::new();
     let mut edges = Vec::<Vec<&str>>::new();
 
@@ -34,9 +45,9 @@ pub fn read_from_dimacs(filepath: &str) -> Result<GraphRepresentation, Error> {
             _ => {}
         });
 
-        nodes.into_iter().enumerate().for_each(|(i, vals)| {
-            if let Some(val) = vals.first().and_then(|val| val.parse::<usize>().ok()) {
-                node_map.insert(i, val);
+        (0..).zip(nodes.into_iter()).for_each(|(i, vals)| {
+            if let Some(val) = vals.first().and_then(|val| val.parse::<N>().ok()) {
+                node_map.insert(Ix::try_from(i).unwrap(), val);
             } else {
                 panic!("Missing node identifier")
             }
@@ -45,10 +56,10 @@ pub fn read_from_dimacs(filepath: &str) -> Result<GraphRepresentation, Error> {
         edges.into_iter().for_each(|els| {
             if let Some((u, v, w)) = els
                 .iter()
-                .map(|val| val.parse::<usize>().unwrap())
+                .map(|val| val.parse::<Ix>().unwrap())
                 .collect_tuple()
             {
-                let w: isize = w
+                let w: E = w
                     .try_into()
                     .expect("Could not convert edge weight to signed int");
                 edge_list.push((u, v, w));

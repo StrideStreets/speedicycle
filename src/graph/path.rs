@@ -1,6 +1,6 @@
 use petgraph::{
     algo::Measure,
-    visit::{Data, GraphBase, IntoEdges, NodeIndexable, Visitable},
+    visit::{Data, GraphBase, NodeIndexable, Visitable},
 };
 
 pub trait FindEdge<G>
@@ -23,18 +23,19 @@ where
     ) -> <G as GraphBase>::EdgeId;
 }
 
+#[derive(Debug)]
 pub struct Path<G, K>
 where
-    G: IntoEdges + Visitable + Data<EdgeWeight = K> + NodeIndexable + FindEdge<G>,
+    G: Visitable + Data<EdgeWeight = K> + NodeIndexable,
     K: Measure + Copy,
 {
     pub length: K,
-    pub sequence: Vec<<G as GraphBase>::NodeId>,
+    pub sequence: Vec<G::NodeId>,
 }
 
 impl<G, K> Path<G, K>
 where
-    G: IntoEdges + Visitable + Data<EdgeWeight = K> + NodeIndexable + FindEdge<G>,
+    G: Visitable + Data<EdgeWeight = K> + NodeIndexable,
     K: Measure + Copy,
 {
     pub fn new() -> Self {

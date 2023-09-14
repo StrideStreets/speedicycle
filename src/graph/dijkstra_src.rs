@@ -1,17 +1,13 @@
 use std::collections::hash_map::Entry::{Occupied, Vacant};
 use std::collections::{BinaryHeap, HashMap};
 
-use std::hash::Hash;
-
+use super::scored::MinScored;
+use petgraph::visit::Data;
 use petgraph::{
     algo::Measure,
-    visit::{Data, EdgeRef, GraphBase, IntoEdgeReferences, IntoEdges, VisitMap, Visitable},
+    visit::{EdgeRef, IntoEdges, VisitMap, Visitable},
 };
-
-use super::scored::MinScored;
-
-//NOTE: This algo has been modified to stop considering nodes after distance reaches a provided maximum
-//It has also had the provision for a target node removed
+use std::hash::Hash;
 
 /// \[Generic\] Dijkstra's shortest path algorithm.
 ///
@@ -75,20 +71,10 @@ use super::scored::MinScored;
 /// assert_eq!(res, expected_res);
 /// // z is not inside res because there is not path from b to z.
 /// ```
-pub fn modified_dijkstra<G, F, K>(
-    graph: G,
-    start: G::NodeId,
-    mut edge_cost: F,
-    max_dist: K,
-) -> (
-    HashMap<G::NodeId, K>,
-    HashMap<G::NodeId, G::NodeId>,
-    HashMap<G::NodeId, Vec<G::NodeId>>,
-)
+pub fn simplified_dijkstra<G, K>(graph: G, start: G::NodeId) -> HashMap<G::NodeId, K>
 where
     G: IntoEdges + Visitable + Data<EdgeWeight = K>,
     G::NodeId: Eq + Hash,
-    F: FnMut(G::EdgeRef) -> K,
     K: Measure + Copy,
 {
     let mut visited = graph.visit_map();
@@ -99,24 +85,15 @@ where
     scores.insert(start, zero_score);
     visit_next.push(MinScored(zero_score, start));
     while let Some(MinScored(node_score, node)) = visit_next.pop() {
-        //Experimenting with removing conditional here. That is, if we get to a point where the
-        //distance is greater than the max, we remove the node from the predecessor list and
-        //stop the iteration.
-        // if node_score > max_dist {
-        //     predecessor.remove(&node);
-        //     visited.visit(node);
-        // }
         if visited.is_visited(&node) {
             continue;
         }
         for edge in graph.edges(node) {
             let next = edge.target();
-            if visited.is_visited(&next) {
-                continue;
-            }
-
-            let next_score = node_score + edge_cost(edge);
-
+            // if visited.is_visited(&next) {
+            //     continue;
+            // }
+            let next_score = node_score + *edge.weight();
             match scores.entry(next) {
                 Occupied(ent) => {
                     if next_score < *ent.get() {
@@ -134,21 +111,5 @@ where
         }
         visited.visit(node);
     }
-
-    let mut predecessor_tree: HashMap<<G as GraphBase>::NodeId, Vec<<G as GraphBase>::NodeId>> =
-        HashMap::new();
-
-    predecessor
-        .clone()
-        .into_iter()
-        .for_each(|(node, prev)| match predecessor_tree.entry(prev) {
-            Occupied(entry) => {
-                entry.into_mut().push(node.clone());
-            }
-            Vacant(entry) => {
-                entry.insert(vec![node.clone()]);
-            }
-        });
-
-    return (scores, predecessor, predecessor_tree);
+    scores
 }
