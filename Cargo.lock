@@ -81,6 +81,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "hashbag"
+version = "0.1.11"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b3d44c238cb72d3e8993a30c32e97b2b2c2c1a12388603f28c4f19a44c4396bc"
+
+[[package]]
 name = "hashbrown"
 version = "0.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -316,6 +322,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "graphalgs",
+ "hashbag",
  "itertools",
  "num",
  "petgraph",
