@@ -34,11 +34,11 @@ where
     let mut nodes = Vec::<Vec<&str>>::new();
     let mut edges = Vec::<Vec<&str>>::new();
 
-    if let Some(content) = fs::read_to_string(filepath).ok() {
+    if let Ok(content) = fs::read_to_string(filepath) {
         let mut lines = content.lines();
 
         let _size_tuple = lines.next();
-        lines.for_each(|line| match line.chars().nth(0).expect("Empty line") {
+        lines.for_each(|line| match line.chars().next().expect("Empty line") {
             'e' => edges.push(line.split_whitespace().skip(1).take(3).collect()),
             'v' => nodes.push(line.split_whitespace().skip(1).collect()),
             _ => {}

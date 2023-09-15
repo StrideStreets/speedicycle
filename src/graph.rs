@@ -37,13 +37,13 @@ where
 
     gr.edge_list.iter().for_each(|(u, v, w)| {
         g.add_edge(
-            *node_index_mapper.get(&u).unwrap(),
-            *node_index_mapper.get(&v).unwrap(),
+            *node_index_mapper.get(u).unwrap(),
+            *node_index_mapper.get(v).unwrap(),
             *w,
         );
         g.add_edge(
-            *node_index_mapper.get(&v).unwrap(),
-            *node_index_mapper.get(&u).unwrap(),
+            *node_index_mapper.get(v).unwrap(),
+            *node_index_mapper.get(u).unwrap(),
             *w,
         );
     });
@@ -115,7 +115,7 @@ where
         .zip(paths.distances.iter())
         .map(|(i, cost)| (NodeIndex::<Ix>::from(i), cost))
         .for_each(|(node, cost)| {
-            if let Some(_) = predecessor_map.get(&node) {
+            if predecessor_map.get(&node).is_some() {
                 distance_map.insert(node, *cost);
             }
         });

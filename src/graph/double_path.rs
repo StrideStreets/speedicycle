@@ -56,7 +56,7 @@ where
 
         while let Some(MaxScored(_node_score, node)) = max_dist_heap.pop() {
             println!("Popped node {:?}", &node);
-            if let Some(_) = failed_nodes.get(&node) {
+            if failed_nodes.get(&node).is_some() {
                 continue;
             }
             if let Some(p1) =
@@ -69,10 +69,8 @@ where
                     h.edges.iter().for_each(|(u, v)| {
                         if let Some(e) = rg.graph.find_edge(*u, *v) {
                             h.length += *rg.graph.edge_weight(e).unwrap();
-                        } else {
-                            if let Some(e) = rg.graph.find_edge(*v, *u) {
-                                h.length += *rg.graph.edge_weight(e).unwrap();
-                            }
+                        } else if let Some(e) = rg.graph.find_edge(*v, *u) {
+                            h.length += *rg.graph.edge_weight(e).unwrap();
                         }
                     });
                     _iterations += 1;
