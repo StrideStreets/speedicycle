@@ -1,6 +1,4 @@
-use crate::graph::{
-    path::Path, path_results_to_distance_and_predecessors, BandhariGraph, EulerGraph,
-};
+use crate::graph::{euler::EulerGraph, path::Path, path_results_to_distance_and_predecessors};
 use num::Bounded;
 use petgraph::{
     algo::{bellman_ford, FloatMeasure, Measure},
@@ -15,14 +13,24 @@ use std::{
     ops::{Mul, Neg, RemAssign},
 };
 
-pub fn get_path_from_previous<G, K>(
+#[derive(Debug)]
+pub struct BandhariGraph<G, E, Ix>
+where
+    G: Visitable + Data<EdgeWeight = E> + GraphBase<NodeId = NodeIndex<Ix>>,
+    E: Measure + Copy,
+{
+    pub graph: G,
+    pub inf_2: E,
+}
+
+pub fn get_path_from_predecessors<G, K>(
     source: <G as GraphBase>::NodeId,
     target: <G as GraphBase>::NodeId,
     predecessor_map: &HashMap<<G as GraphBase>::NodeId, <G as GraphBase>::NodeId>,
     distance_map: &HashMap<<G as GraphBase>::NodeId, K>,
 ) -> Option<Path<G, K>>
 where
-    G: Visitable + Data<EdgeWeight = K> + NodeIndexable, // + IntoNeighbors,
+    G: Visitable + Data<EdgeWeight = K> + NodeIndexable,
     G::NodeId: Eq + Hash + Debug,
     K: Measure + Copy,
 {
@@ -30,10 +38,10 @@ where
     if let Some(length) = distance_map.get(&target) {
         p.length = length.to_owned();
         let mut farthest_node = &target;
-        println!("Source: {:?}", &source);
-        println!("Target: {:?}", &target);
+        //println!("Source: {:?}", &source);
+        //println!("Target: {:?}", &target);
         while *farthest_node != source {
-            println!("Current farthest node: {:?}", &farthest_node);
+            //println!("Current farthest node: {:?}", &farthest_node);
             p.sequence.push(*farthest_node);
             farthest_node = predecessor_map.get(farthest_node).unwrap();
         }
@@ -57,7 +65,6 @@ where
         + NodeIndexable
         + DataMap
         + Debug,
-    //+ IntoNeighbors<Neighbors = WalkNeighbors<Ix>>,
     G::NodeId: Eq + Hash,
     G::NodeWeight: Clone + Debug,
     E: FloatMeasure + Copy + Neg<Output = E> + Mul<Output = E> + RemAssign + Bounded,
@@ -79,22 +86,22 @@ where
 
         //Remove edges
         if let Some(edge_id) = g.find_edge(*u, *v) {
-            println!("Removing edge {:?}", &edge_id);
+            //println!("Removing edge {:?}", &edge_id);
             if let Some(weight) = g.remove_edge(edge_id) {
-                print!(" with weight {:?}", &weight);
+                //print!(" with weight {:?}", &weight);
                 w = weight;
-                let temp = g.add_edge(*u, *v, w * rg.inf_2);
-                println!("Added edge {:?}", temp);
+                let _temp = g.add_edge(*u, *v, w * rg.inf_2);
+                //println!("Added edge {:?}", temp);
             }
         }
 
         if let Some(edge_id) = g.find_edge(*v, *u) {
-            println!("Removing edge {:?}", &edge_id);
+            //println!("Removing edge {:?}", &edge_id);
             if let Some(weight) = g.remove_edge(edge_id) {
-                print!(" with weight {:?}", &weight);
+                //print!(" with weight {:?}", &weight);
                 w = weight;
-                let temp = g.add_edge(*v, *u, -w);
-                println!("Added edge {:?}", temp);
+                let _temp = g.add_edge(*v, *u, -w);
+                //println!("Added edge {:?}", temp);
             }
         }
 
@@ -106,9 +113,12 @@ where
         let (mod_distance_map, mod_predecessor_map) =
             path_results_to_distance_and_predecessors(paths);
 
-        if let Some(mut reverse_path) =
-            get_path_from_previous::<G, E>(source, *target, &mod_predecessor_map, &mod_distance_map)
-        {
+        if let Some(mut reverse_path) = get_path_from_predecessors::<G, E>(
+            source,
+            *target,
+            &mod_predecessor_map,
+            &mod_distance_map,
+        ) {
             reverse_path.length %= rg.inf_2;
             println!("{:?}", &reverse_path);
             return Some(reverse_path);

@@ -1,7 +1,9 @@
 mod graph;
 mod io;
-use graph::{double_path, get_distances, make_graph, trim_graph_at_max_distance};
+
+use graph::{double_path::double_path, make_graph, trim_graph_at_max_distance};
 use io::read_from_dimacs;
+use petgraph::algo::dijkstra;
 use petgraph::stable_graph::{NodeIndex, StableDiGraph, StableGraph};
 use petgraph::Directed;
 
@@ -22,7 +24,7 @@ fn main() {
         // let (distances, predecessor_map, predecessor_tree) =
         //     get_distances(&graph, starting_node, max_dist);
 
-        let distances = get_distances(&graph, starting_node);
+        let distances = dijkstra(&graph, starting_node, None, |e| *e.weight());
         let trimmed_graph = trim_graph_at_max_distance(graph, &distances, max_dist);
 
         println!(
