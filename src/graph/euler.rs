@@ -8,7 +8,6 @@ use crate::graph::{GraphBase, Measure};
 
 use std::{
     collections::{HashMap, HashSet, VecDeque},
-    fmt,
     fmt::Debug,
     hash::Hash,
     iter::Sum,
@@ -111,8 +110,7 @@ where
     let node_order = hierholzer::<G, E>(vertex_edge_mapper, source);
     let ordered_node_weight_list: Vec<<G as Data>::NodeWeight> = node_order
         .iter()
-        .filter_map(|node| ref_graph.node_weight(*node))
-        .map(|w| *w)
+        .filter_map(|node| ref_graph.node_weight(*node)).copied()
         .collect();
     let node_pair_list: Vec<(G::NodeId, G::NodeId)> = node_order
         .iter()
@@ -245,8 +243,7 @@ where
     let mut node_weights: Vec<<G as Data>::NodeWeight> = ecircuit
         .node_pair_list
         .iter()
-        .filter_map(|(u, _)| ref_graph.node_weight(*u))
-        .map(|w| *w)
+        .filter_map(|(u, _)| ref_graph.node_weight(*u)).copied()
         .collect();
     node_weights.push(node_weights[0]);
 

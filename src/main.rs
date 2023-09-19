@@ -1,7 +1,7 @@
+#![warn(unused_crate_dependencies)]
 mod graph;
 mod io;
 
-use crate::graph::euler::euler_to_simple_node_list;
 use graph::{
     double_path::double_path, euler::make_euler_circuit, make_graph, trim_graph_at_max_distance,
 };
@@ -62,7 +62,14 @@ fn main() {
             );
 
             let _ = write_solution_strings_to_file(
-                "test_solutions_rust.txt",
+                &[
+                    &filepath
+                        .split('.')
+                        .next()
+                        .expect("Filepath should contain one or more parts after splitting"),
+                    "sols.txt",
+                ]
+                .join(""),
                 serde_json::to_string(&vec![
                     &upper_ec.ordered_node_weight_list,
                     &lower_ec.ordered_node_weight_list,
