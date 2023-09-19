@@ -9,7 +9,7 @@ use graph::{
 };
 use io::{read_from_dimacs, write_solution_strings_to_file};
 use petgraph::algo::dijkstra;
-use petgraph::stable_graph::{NodeIndex, StableDiGraph, StableGraph};
+use petgraph::stable_graph::{StableDiGraph, StableGraph};
 use petgraph::Directed;
 use serde_json::json;
 

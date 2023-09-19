@@ -11,7 +11,6 @@ use std::{
     fmt::Debug,
     hash::Hash,
     iter::Sum,
-    ops::Add,
 };
 
 #[derive(Debug)]
@@ -139,66 +138,6 @@ where
     }
 }
 
-fn hierholzer<G, E>(
-    mut v_e_mapper: HashMap<G::NodeId, VecDeque<G::NodeId>>,
-    source: G::NodeId,
-) -> VecDeque<G::NodeId>
-where
-    G: GraphBase,
-    G::NodeId: Hash + Eq + Debug,
-    E: Copy + Measure + Default,
-{
-    let mut ordered_nodes = VecDeque::new();
-    ordered_nodes.push_back(source);
-
-    let mut temp_ordered_nodes = VecDeque::new();
-
-    extract_circuit::<G, E>(&mut v_e_mapper, &mut ordered_nodes, source);
-
-    //Pick up on implementation here, starting with EulerCircuit.cpp line 34
-    loop {
-        let circuit_start_node: G::NodeId;
-        let mut next_iter_start_ind = 0usize;
-        let mut current_ordered_nodes = ordered_nodes.clone();
-        let mut iter = current_ordered_nodes.iter().enumerate().skip(0).peekable();
-
-        loop {
-            match iter.next() {
-                Some((_i, node)) => {
-                    if !&v_e_mapper
-                        .get(node)
-                        .expect("All nodes should be in mapper")
-                        .is_empty()
-                    {
-                        circuit_start_node = *node;
-                        break;
-                    }
-                }
-                None => {
-                    ordered_nodes.push_back(source);
-                    return ordered_nodes;
-                }
-            }
-        }
-
-        extract_circuit::<G, E>(&mut v_e_mapper, &mut temp_ordered_nodes, circuit_start_node);
-        temp_ordered_nodes.push_back(circuit_start_node);
-
-        if let Some((next_ind, _next_node)) = &mut iter.peek() {
-            next_iter_start_ind = *next_ind;
-            while let Some(back_node) = temp_ordered_nodes.pop_back() {
-                ordered_nodes.insert(*next_ind, back_node);
-            }
-            current_ordered_nodes = ordered_nodes.clone();
-        }
-        iter = current_ordered_nodes
-            .iter()
-            .enumerate()
-            .skip(next_iter_start_ind)
-            .peekable();
-    }
-}
-
 fn hierholzer_new<G, E>(
     vertex_edge_mapper: &HashMap<G::NodeId, VecDeque<G::NodeId>>,
     source: G::NodeId,
@@ -222,7 +161,7 @@ where
                 let next_vertex = adj_list
                     .pop_back()
                     .expect("As written, we are guaranteed a value here");
-                let mut next_adj_list = v_e_mapper
+                let next_adj_list = v_e_mapper
                     .get_mut(&next_vertex)
                     .expect("As written, we are guaranteed a value here");
                 next_adj_list.remove(
@@ -245,61 +184,4 @@ where
     let ordered_circuit: VecDeque<G::NodeId> = circuit.into_iter().rev().collect();
     println!("{:?}", &ordered_circuit);
     ordered_circuit
-}
-
-fn extract_circuit<G, E>(
-    v_e_mapper: &mut HashMap<G::NodeId, VecDeque<G::NodeId>>,
-    ordered_nodes: &mut VecDeque<G::NodeId>,
-    source: G::NodeId,
-) where
-    G: GraphBase,
-    G::NodeId: Hash + Eq + Debug,
-    E: Copy + Measure + Default,
-{
-    let mut u = source;
-
-    while let Some(node) = v_e_mapper
-        .get_mut(&u)
-        .expect(&format!(
-            "All nodes should be in mapper. Encountered error on node {:?}",
-            u
-        ))
-        .pop_front()
-    {
-        let v = node;
-        if let Some(vec) = v_e_mapper.get_mut(&u) {
-            if let Some(pos) = vec.iter().position(|x| *x == v) {
-                vec.swap_remove_back(pos);
-            }
-        }
-        if let Some(vec) = v_e_mapper.get_mut(&v) {
-            if let Some(pos) = vec.iter().position(|x| *x == u) {
-                vec.swap_remove_back(pos);
-            }
-        }
-        ordered_nodes.push_back(v);
-        u = v;
-    }
-
-    ordered_nodes.pop_back();
-}
-
-pub fn euler_to_simple_node_list<G, E>(
-    ecircuit: &EulerCircuit<G, E>,
-    ref_graph: &G,
-) -> Vec<G::NodeWeight>
-where
-    G: GraphBase + DataMap,
-    G::NodeWeight: Copy + Debug,
-    E: Copy + Default + Debug + PartialOrd + Add<Output = E>,
-{
-    let mut node_weights: Vec<<G as Data>::NodeWeight> = ecircuit
-        .node_pair_list
-        .iter()
-        .filter_map(|(u, _)| ref_graph.node_weight(*u))
-        .copied()
-        .collect();
-    node_weights.push(node_weights[0]);
-
-    node_weights
 }
