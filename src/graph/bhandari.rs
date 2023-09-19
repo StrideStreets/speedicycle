@@ -1,4 +1,7 @@
-use crate::graph::{euler::EulerGraph, path::Path, path_results_to_distance_and_predecessors};
+use crate::graph::{
+    euler::EulerGraph, path::Path, path_results_to_distance_and_predecessors, DistanceMap,
+    PredecessorMap,
+};
 use num::Bounded;
 use petgraph::{
     algo::{bellman_ford, FloatMeasure, Measure},
@@ -7,7 +10,6 @@ use petgraph::{
     visit::{Data, GraphBase, NodeIndexable, Visitable},
 };
 use std::{
-    collections::HashMap,
     fmt::Debug,
     hash::Hash,
     ops::{Mul, Neg, RemAssign},
@@ -23,18 +25,18 @@ where
     pub inf_2: E,
 }
 
-pub fn get_path_from_predecessors<G, K>(
+pub fn get_path_from_predecessors<G, E>(
     source: <G as GraphBase>::NodeId,
     target: <G as GraphBase>::NodeId,
-    predecessor_map: &HashMap<<G as GraphBase>::NodeId, <G as GraphBase>::NodeId>,
-    distance_map: &HashMap<<G as GraphBase>::NodeId, K>,
-) -> Option<Path<G, K>>
+    predecessor_map: &PredecessorMap<G>,
+    distance_map: &DistanceMap<G, E>,
+) -> Option<Path<G, E>>
 where
-    G: Visitable + Data<EdgeWeight = K> + NodeIndexable,
+    G: Visitable + Data<EdgeWeight = E> + NodeIndexable,
     G::NodeId: Eq + Hash + Debug,
-    K: Measure + Copy,
+    E: Measure + Copy,
 {
-    let mut p = Path::<G, K>::new();
+    let mut p = Path::<G, E>::new();
     if let Some(length) = distance_map.get(&target) {
         p.length = length.to_owned();
         let mut farthest_node = &target;
@@ -51,7 +53,7 @@ where
         return None;
     }
 
-    return Some(p);
+    Some(p)
 }
 
 pub fn get_edge_disjoint_path<G, E, Ix>(
@@ -120,15 +122,15 @@ where
             &mod_distance_map,
         ) {
             reverse_path.length %= rg.inf_2;
-            println!("{:?}", &reverse_path);
-            return Some(reverse_path);
+            //println!("{:?}", &reverse_path);
+            Some(reverse_path)
         } else {
             println!("Failed to get reverse path");
-            return None;
+            None
         }
     } else {
         println!("Failed to execute bellman_ford");
-        return None;
+        None
     }
     // let (mod_distance_map, mod_predecessor_map) =
     //     moore_shortest_s_t_path::<G, E, Ix>(&g, source, *target);
@@ -170,5 +172,5 @@ where
         circuit_set.vertices.insert(*v);
     });
 
-    return circuit_set;
+    circuit_set
 }

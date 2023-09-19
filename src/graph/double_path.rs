@@ -5,7 +5,9 @@ use super::euler::EulerGraph;
 
 use super::scored::MaxScored;
 
-use super::path_results_to_distance_and_predecessors;
+use super::{
+    path_results_to_distance_and_predecessors, predecessors_to_successors, PredecessorMap,
+};
 use num::Bounded;
 use petgraph::{
     algo::{bellman_ford::bellman_ford, FloatMeasure},
@@ -54,15 +56,17 @@ where
             .iter()
             .for_each(|(node, weight)| max_dist_heap.push(MaxScored(weight, node)));
 
+        let successors = predecessors_to_successors(&predecessor_map);
+
         while let Some(MaxScored(_node_score, node)) = max_dist_heap.pop() {
-            println!("Popped node {:?}", &node);
-            if failed_nodes.get(&node).is_some() {
+            //println!("Popped node {:?}", &node);
+            if failed_nodes.get(node).is_some() {
                 continue;
             }
             if let Some(p1) =
                 get_path_from_predecessors::<G, E>(source, *node, &predecessor_map, &distance_map)
             {
-                println!("Path One: {:?}", &p1);
+                //println!("Path One: {:?}", &p1);
                 if let Some(p2) = get_edge_disjoint_path(&rg, &p1) {
                     let mut h = unweave_paths(p1, p2);
 
@@ -83,11 +87,16 @@ where
                         if h_lower.length < h.length {
                             h_lower = h;
                         }
-                    } else if h.length >= target_length {
-                        if h_upper.length > h.length {
-                            h_upper = h;
+                    } else if h.length >= target_length && h_upper.length > h.length {
+                        h_upper = h;
+
+                        let mut targets = vec![node];
+                        while let Some(next_node) = targets.pop() {
+                            failed_nodes.insert(*next_node);
+                            if let Some(next_targets) = successors.get(next_node) {
+                                targets.extend(next_targets);
+                            };
                         }
-                        //todo!("Add optimization to add to failed nodes all nodes whose shortest path runs through t");
                     }
 
                     if h_upper.length == h_lower.length {
@@ -96,9 +105,9 @@ where
                 }
             }
         }
-        return Some((h_lower, h_upper));
+        Some((h_lower, h_upper))
     } else {
         println!("Failed to execute first instance of bellman_ford");
-        return None;
+        None
     }
 }

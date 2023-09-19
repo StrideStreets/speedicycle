@@ -1,7 +1,9 @@
 mod graph;
 mod io;
 
-use graph::{double_path::double_path, make_graph, trim_graph_at_max_distance};
+use graph::{
+    double_path::double_path, euler::make_euler_circuit, make_graph, trim_graph_at_max_distance,
+};
 use io::read_from_dimacs;
 use petgraph::algo::dijkstra;
 use petgraph::stable_graph::{NodeIndex, StableDiGraph, StableGraph};
@@ -12,7 +14,7 @@ fn main() {
     if let Ok(gr) = read_from_dimacs::<u32, f64, u32>("routingTopologies.txt") {
         let max_dist = 3000.0;
         let starting_node = NodeIndex::from(12u32);
-        let graph: StableGraph<u32, f64> =
+        let mut graph: StableGraph<u32, f64> =
             make_graph::<&'static StableGraph<u32, f64, Directed, u32>, u32, f64, u32>(gr);
 
         println!(
@@ -25,7 +27,7 @@ fn main() {
         //     get_distances(&graph, starting_node, max_dist);
 
         let distances = dijkstra(&graph, starting_node, None, |e| *e.weight());
-        let trimmed_graph = trim_graph_at_max_distance(graph, &distances, max_dist);
+        let trimmed_graph = trim_graph_at_max_distance(&mut graph, &distances, max_dist);
 
         println!(
             "Nodes: {}, Edges: {}",
@@ -40,8 +42,17 @@ fn main() {
                 4000.0,
             )
         {
-            println!("Upper bound: {:?}", upper_bound);
-            println!("Lower bound: {:?}", lower_bound);
+            println!("Upper bound edge length: {:?}", &upper_bound.edges.len());
+            println!("Upper bound edges: {:?}", &upper_bound.edges);
+            let ec = make_euler_circuit::<StableDiGraph<u32, f64, u32>, f64, u32>(
+                &graph,
+                &upper_bound,
+                starting_node,
+            );
+
+            println!("Euler Edge Length: {:?}", &ec.edge_list.len());
+            println!("Euler Node Pair Length: {:?}", &ec.node_pair_list.len());
+            println!("Euler Node Pairs: {:?}", &ec.node_pair_list);
         }
     }
 }

@@ -1,6 +1,6 @@
 mod bhandari;
 pub mod double_path;
-mod euler;
+pub mod euler;
 mod path;
 mod scored;
 
@@ -10,12 +10,16 @@ use crate::io::GraphRepresentation;
 
 use petgraph::{
     algo::{bellman_ford::Paths, FloatMeasure, Measure},
+    graph::Node,
     stable_graph::{IndexType, NodeIndex, StableDiGraph},
     visit::{GraphBase, IntoEdges},
 };
 
 use std::ops::{Add, AddAssign, Div};
 use std::{collections::HashMap, hash::Hash};
+
+pub type PredecessorMap<G> = HashMap<<G as GraphBase>::NodeId, <G as GraphBase>::NodeId>;
+pub type DistanceMap<G, E> = HashMap<<G as GraphBase>::NodeId, E>;
 
 //Note that, because of weight adjustments we will make when implementing Bandhari's
 //algorithm, we need to "manually" construct an undirected graph using the
@@ -48,11 +52,11 @@ where
         );
     });
 
-    return g;
+    g
 }
 
 pub fn trim_graph_at_max_distance<N, E, Ix>(
-    mut g: StableDiGraph<N, E, Ix>,
+    g: &mut StableDiGraph<N, E, Ix>,
     distance_map: &HashMap<NodeIndex<Ix>, E>,
     max_dist: E,
 ) -> BandhariGraph<StableDiGraph<N, E, Ix>, E, Ix>
@@ -62,8 +66,8 @@ where
     Ix: IndexType,
 {
     let local_g = g.clone();
-    let mut node_indices = local_g.node_indices().clone();
-    while let Some(node) = node_indices.next() {
+    let node_indices = local_g.node_indices().clone();
+    for node in node_indices {
         match distance_map.get(&node) {
             Some(dist) => {
                 if *dist > max_dist {
@@ -84,10 +88,10 @@ where
 
     inf2 = (inf2 / 2.0) + 1.0;
 
-    return BandhariGraph {
-        graph: g,
+    BandhariGraph {
+        graph: g.clone(),
         inf_2: inf2,
-    };
+    }
 }
 
 pub fn path_results_to_distance_and_predecessors<E, Ix>(
@@ -101,6 +105,7 @@ where
     E: Copy,
 {
     let mut predecessor_map: HashMap<NodeIndex<Ix>, NodeIndex<Ix>> = HashMap::new();
+
     (0..)
         .zip(paths.predecessors.iter())
         .map(|(i, pred)| (NodeIndex::<Ix>::from(i), pred))
@@ -120,5 +125,25 @@ where
             }
         });
 
-    return (distance_map, predecessor_map);
+    (distance_map, predecessor_map)
+}
+
+pub fn predecessors_to_successors<Ix>(
+    predecessor_map: &HashMap<NodeIndex<Ix>, NodeIndex<Ix>>,
+) -> HashMap<NodeIndex<Ix>, Vec<NodeIndex<Ix>>>
+where
+    NodeIndex<Ix>: Eq + Hash + Copy,
+{
+    let mut successor_map: HashMap<NodeIndex<Ix>, Vec<NodeIndex<Ix>>> = HashMap::new();
+    predecessor_map
+        .iter()
+        .for_each(|(node, pred)| match successor_map.get_mut(pred) {
+            Some(successors) => {
+                successors.push(*node);
+            }
+            None => {
+                successor_map.insert(*pred, vec![*node]);
+            }
+        });
+    successor_map
 }

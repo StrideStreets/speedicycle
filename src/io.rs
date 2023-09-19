@@ -14,10 +14,10 @@ pub struct GraphRepresentation<N, E, Ix> {
 
 impl<N, E, Ix> GraphRepresentation<N, E, Ix> {
     fn new(n: HashMap<Ix, N>, e: Vec<(Ix, Ix, E)>) -> GraphRepresentation<N, E, Ix> {
-        return GraphRepresentation {
+        GraphRepresentation {
             node_map: n,
             edge_list: e,
-        };
+        }
     }
 }
 
@@ -65,7 +65,7 @@ where
             };
         });
 
-        return Ok(GraphRepresentation::new(node_map, edge_list));
+        Ok(GraphRepresentation::new(node_map, edge_list))
     } else {
         return Err(anyhow!("Something"));
     }
