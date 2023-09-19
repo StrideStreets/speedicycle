@@ -107,7 +107,8 @@ where
         };
     });
 
-    let node_order = hierholzer::<G, E>(vertex_edge_mapper, source);
+    let node_order = hierholzer_new::<G, E>(&vertex_edge_mapper, source);
+
     let ordered_node_weight_list: Vec<<G as Data>::NodeWeight> = node_order
         .iter()
         .filter_map(|node| ref_graph.node_weight(*node))
@@ -196,6 +197,54 @@ where
             .skip(next_iter_start_ind)
             .peekable();
     }
+}
+
+fn hierholzer_new<G, E>(
+    vertex_edge_mapper: &HashMap<G::NodeId, VecDeque<G::NodeId>>,
+    source: G::NodeId,
+) -> VecDeque<G::NodeId>
+where
+    G: GraphBase,
+    G::NodeId: Hash + Eq + Debug,
+    E: Copy + Measure + Default,
+{
+    let mut v_e_mapper = vertex_edge_mapper.clone();
+    let mut curr_path: VecDeque<G::NodeId> = VecDeque::new();
+    let mut circuit: VecDeque<G::NodeId> = VecDeque::new();
+
+    curr_path.push_back(source);
+    let mut current_vertex = source;
+
+    while !curr_path.is_empty() {
+        if let Some(adj_list) = v_e_mapper.get_mut(&current_vertex) {
+            if !adj_list.is_empty() {
+                curr_path.push_back(current_vertex);
+                let next_vertex = adj_list
+                    .pop_back()
+                    .expect("As written, we are guaranteed a value here");
+                let mut next_adj_list = v_e_mapper
+                    .get_mut(&next_vertex)
+                    .expect("As written, we are guaranteed a value here");
+                next_adj_list.remove(
+                    next_adj_list
+                        .iter()
+                        .position(|&node| node == current_vertex)
+                        .unwrap(),
+                );
+
+                current_vertex = next_vertex;
+            } else {
+                circuit.push_back(current_vertex);
+                current_vertex = curr_path
+                    .pop_back()
+                    .expect("As written, we are guaranteed a value here");
+            }
+        }
+    }
+
+    let ordered_circuit: VecDeque<G::NodeId> = circuit.into_iter().rev().collect();
+    println!("{:?}", &ordered_circuit);
+    ordered_circuit
 }
 
 fn extract_circuit<G, E>(

@@ -83,7 +83,7 @@ where
     for i in 0..(p.sequence.len() - 1) {
         //Continue here translating from Bhandari.cpp line 26
         let u = &p.sequence[i];
-        let v = &p.sequence[(i + 1)];
+        let v = &p.sequence[i + 1];
         let mut w: <G as Data>::EdgeWeight;
 
         //Remove edges
@@ -92,7 +92,7 @@ where
             if let Some(weight) = g.remove_edge(edge_id) {
                 //print!(" with weight {:?}", &weight);
                 w = weight;
-                let _temp = g.add_edge(*u, *v, w * rg.inf_2);
+                let _temp = g.add_edge(*u, *v, w + rg.inf_2);
                 //println!("Added edge {:?}", temp);
             }
         }

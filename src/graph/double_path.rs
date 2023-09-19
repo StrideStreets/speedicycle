@@ -5,9 +5,7 @@ use super::euler::EulerGraph;
 
 use super::scored::MaxScored;
 
-use super::{
-    path_results_to_distance_and_predecessors, predecessors_to_successors,
-};
+use super::{path_results_to_distance_and_predecessors, predecessors_to_successors};
 use num::Bounded;
 use petgraph::{
     algo::{bellman_ford::bellman_ford, FloatMeasure},
@@ -24,7 +22,7 @@ use std::{
 
 pub fn double_path<G, E, Ix>(
     source: NodeIndex<Ix>,
-    rg: BandhariGraph<StableDiGraph<G::NodeWeight, E, Ix>, E, Ix>,
+    rg: &BandhariGraph<StableDiGraph<G::NodeWeight, E, Ix>, E, Ix>,
     target_length: E,
 ) -> Option<(EulerGraph<G, E>, EulerGraph<G, E>)>
 where

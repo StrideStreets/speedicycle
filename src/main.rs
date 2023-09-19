@@ -55,49 +55,66 @@ fn main() {
             &trimmed_graph.graph.node_count(),
             &trimmed_graph.graph.edge_count()
         );
+        let mut upper_ec;
+        let mut lower_ec;
+        let mut double_path_iterations = 1;
+        loop {
+            if let Some((lower_bound, upper_bound)) =
+                double_path::<StableDiGraph<u32, f64, u32>, f64, u32>(
+                    starting_node,
+                    &trimmed_graph,
+                    target_length,
+                )
+            {
+                println!("{:?}", &upper_bound);
 
-        if let Some((lower_bound, upper_bound)) =
-            double_path::<StableDiGraph<u32, f64, u32>, f64, u32>(
-                starting_node,
-                trimmed_graph,
-                target_length,
-            )
-        {
-            let upper_ec = make_euler_circuit::<StableDiGraph<u32, f64, u32>, f64, u32>(
-                &graph,
-                &upper_bound,
-                starting_node,
-            );
-            let lower_ec = make_euler_circuit::<StableDiGraph<u32, f64, u32>, f64, u32>(
-                &graph,
-                &lower_bound,
-                starting_node,
-            );
+                upper_ec = make_euler_circuit::<StableDiGraph<u32, f64, u32>, f64, u32>(
+                    &graph,
+                    &upper_bound,
+                    starting_node,
+                );
+                println!("{:?}", &upper_ec);
+                lower_ec = make_euler_circuit::<StableDiGraph<u32, f64, u32>, f64, u32>(
+                    &graph,
+                    &lower_bound,
+                    starting_node,
+                );
 
-            let _ = write_solution_strings_to_file(
-                &[
-                    &args
-                        .input_path
-                        .split('.')
-                        .next()
-                        .expect("Filepath should contain one or more parts after splitting"),
-                    "sols.txt",
-                ]
-                .join("_"),
-                serde_json::to_string(&vec![
-                    &upper_ec.ordered_node_weight_list,
-                    &lower_ec.ordered_node_weight_list,
-                ])
-                .unwrap(),
-            );
-
-            println!(
-                "{}",
-                json!(&vec![
-                    &upper_ec.ordered_node_weight_list,
-                    &lower_ec.ordered_node_weight_list
-                ])
-            )
+                if upper_ec.ordered_node_weight_list.first()
+                    == upper_ec.ordered_node_weight_list.last()
+                    && lower_ec.ordered_node_weight_list.first()
+                        == lower_ec.ordered_node_weight_list.last()
+                {
+                    break;
+                } else {
+                    double_path_iterations += 1;
+                    println!("Double path iterations: {:}", double_path_iterations);
+                }
+            }
         }
+        let _ = write_solution_strings_to_file(
+            &[
+                &args
+                    .input_path
+                    .split('.')
+                    .next()
+                    .expect("Filepath should contain one or more parts after splitting"),
+                "sols.txt",
+            ]
+            .join("_"),
+            serde_json::to_string(&vec![
+                &upper_ec.ordered_node_weight_list,
+                &lower_ec.ordered_node_weight_list,
+            ])
+            .unwrap(),
+        );
+
+        println!(
+            "{}",
+            json!(&vec![
+                &upper_ec.ordered_node_weight_list,
+                &lower_ec.ordered_node_weight_list
+            ])
+        )
     }
 }
