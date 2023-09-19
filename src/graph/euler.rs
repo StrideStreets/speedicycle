@@ -110,7 +110,8 @@ where
     let node_order = hierholzer::<G, E>(vertex_edge_mapper, source);
     let ordered_node_weight_list: Vec<<G as Data>::NodeWeight> = node_order
         .iter()
-        .filter_map(|node| ref_graph.node_weight(*node)).copied()
+        .filter_map(|node| ref_graph.node_weight(*node))
+        .copied()
         .collect();
     let node_pair_list: Vec<(G::NodeId, G::NodeId)> = node_order
         .iter()
@@ -143,7 +144,7 @@ fn hierholzer<G, E>(
 ) -> VecDeque<G::NodeId>
 where
     G: GraphBase,
-    G::NodeId: Hash + Eq,
+    G::NodeId: Hash + Eq + Debug,
     E: Copy + Measure + Default,
 {
     let mut ordered_nodes = VecDeque::new();
@@ -203,14 +204,17 @@ fn extract_circuit<G, E>(
     source: G::NodeId,
 ) where
     G: GraphBase,
-    G::NodeId: Hash + Eq,
+    G::NodeId: Hash + Eq + Debug,
     E: Copy + Measure + Default,
 {
     let mut u = source;
 
     while let Some(node) = v_e_mapper
         .get_mut(&u)
-        .expect("All nodes should be in mapper")
+        .expect(&format!(
+            "All nodes should be in mapper. Encountered error on node {:?}",
+            u
+        ))
         .pop_front()
     {
         let v = node;
@@ -243,7 +247,8 @@ where
     let mut node_weights: Vec<<G as Data>::NodeWeight> = ecircuit
         .node_pair_list
         .iter()
-        .filter_map(|(u, _)| ref_graph.node_weight(*u)).copied()
+        .filter_map(|(u, _)| ref_graph.node_weight(*u))
+        .copied()
         .collect();
     node_weights.push(node_weights[0]);
 

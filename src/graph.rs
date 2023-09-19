@@ -14,8 +14,11 @@ use petgraph::{
     visit::{GraphBase, IntoEdges},
 };
 
-use std::ops::{Add, AddAssign, Div};
 use std::{collections::HashMap, hash::Hash};
+use std::{
+    fmt::Debug,
+    ops::{Add, AddAssign, Div},
+};
 
 pub type PredecessorMap<G> = HashMap<<G as GraphBase>::NodeId, <G as GraphBase>::NodeId>;
 pub type DistanceMap<G, E> = HashMap<<G as GraphBase>::NodeId, E>;
@@ -24,12 +27,14 @@ pub type DistanceMap<G, E> = HashMap<<G as GraphBase>::NodeId, E>;
 //algorithm, we need to "manually" construct an undirected graph using the
 //directed graph type. That is, we will need to add two edges for each
 //edge in our adjacency list (one in each direction).
-pub fn make_graph<G, N, E, Ix>(gr: GraphRepresentation<N, E, Ix>) -> StableDiGraph<N, E, Ix>
+pub fn make_graph<G, N, E, Ix>(
+    gr: GraphRepresentation<N, E, Ix>,
+) -> (StableDiGraph<N, E, Ix>, HashMap<Ix, G::NodeId>)
 where
     G: GraphBase<NodeId = NodeIndex<Ix>> + IntoEdges,
-    N: Eq + Hash + Copy,
+    N: Eq + Hash + Copy + Debug,
     Ix: IndexType,
-    E: Copy,
+    E: Copy + Debug,
 {
     let mut g = StableDiGraph::<N, E, Ix>::default();
     let mut node_index_mapper: HashMap<Ix, G::NodeId> = HashMap::new();
@@ -51,7 +56,7 @@ where
         );
     });
 
-    g
+    (g, node_index_mapper)
 }
 
 pub fn trim_graph_at_max_distance<N, E, Ix>(
@@ -101,8 +106,10 @@ pub fn path_results_to_distance_and_predecessors<E, Ix>(
 )
 where
     NodeIndex<Ix>: Eq + Hash + From<u32> + Copy,
-    E: Copy,
+    E: Copy + Debug,
+    Ix: Debug,
 {
+    //println!("{:?}", &paths);
     let mut predecessor_map: HashMap<NodeIndex<Ix>, NodeIndex<Ix>> = HashMap::new();
 
     (0..)

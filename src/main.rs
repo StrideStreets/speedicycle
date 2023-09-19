@@ -2,6 +2,7 @@
 mod graph;
 mod io;
 
+use clap::Parser;
 use graph::{
     double_path::double_path, euler::make_euler_circuit, make_graph, trim_graph_at_max_distance,
 };
@@ -11,18 +12,25 @@ use petgraph::stable_graph::{NodeIndex, StableDiGraph, StableGraph};
 use petgraph::Directed;
 use serde_json::json;
 
+#[derive(Parser)]
+struct Args {
+    #[arg(short, long)]
+    input_path: String,
+    #[arg(short, long)]
+    source_vertex: u32,
+    #[arg(short, long)]
+    target_length: f64,
+}
 fn main() {
-    let filepath = std::env::args().nth(1).expect("No filepath provided.");
-    let source_ind: u32 = std::env::args()
-        .nth(2)
-        .expect("No source index given")
-        .parse()
-        .expect("Source index not a valid integer.");
+    let args: Args = Args::parse();
 
-    if let Ok(gr) = read_from_dimacs::<u32, f64, u32>(&filepath) {
-        let max_dist = 3000.0;
-        let starting_node = NodeIndex::from(source_ind);
-        let mut graph: StableGraph<u32, f64> =
+    if let Ok(gr) = read_from_dimacs::<u32, f64, u32>(&args.input_path) {
+        let max_dist = args.target_length * (0.6);
+        let target_length = args.target_length;
+
+        println!("{:?}", &gr.node_map.get(&args.source_vertex));
+
+        let (mut graph, node_index_mapper) =
             make_graph::<&'static StableGraph<u32, f64, Directed, u32>, u32, f64, u32>(gr);
 
         println!(
@@ -31,6 +39,11 @@ fn main() {
             &graph.edge_count()
         );
 
+        let starting_node = *node_index_mapper
+            .get(&args.source_vertex)
+            .expect("Invalid source vertex");
+
+        println!("{:?}", &graph.node_weight(starting_node));
         // let (distances, predecessor_map, predecessor_tree) =
         //     get_distances(&graph, starting_node, max_dist);
 
@@ -45,9 +58,9 @@ fn main() {
 
         if let Some((lower_bound, upper_bound)) =
             double_path::<StableDiGraph<u32, f64, u32>, f64, u32>(
-                NodeIndex::new(12),
+                starting_node,
                 trimmed_graph,
-                4000.0,
+                target_length,
             )
         {
             let upper_ec = make_euler_circuit::<StableDiGraph<u32, f64, u32>, f64, u32>(
@@ -63,13 +76,14 @@ fn main() {
 
             let _ = write_solution_strings_to_file(
                 &[
-                    &filepath
+                    &args
+                        .input_path
                         .split('.')
                         .next()
                         .expect("Filepath should contain one or more parts after splitting"),
                     "sols.txt",
                 ]
-                .join(""),
+                .join("_"),
                 serde_json::to_string(&vec![
                     &upper_ec.ordered_node_weight_list,
                     &lower_ec.ordered_node_weight_list,
