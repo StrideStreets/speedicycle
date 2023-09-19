@@ -2,6 +2,7 @@
 mod graph;
 mod io;
 
+use anyhow::{anyhow, Error};
 use clap::Parser;
 use graph::{
     double_path::double_path, euler::make_euler_circuit, make_graph, trim_graph_at_max_distance,
@@ -21,7 +22,7 @@ struct Args {
     #[arg(short, long)]
     target_length: f64,
 }
-fn main() {
+fn main() -> Result<(), Error> {
     let args: Args = Args::parse();
 
     if let Ok(gr) = read_from_dimacs::<u32, f64, u32>(&args.input_path) {
@@ -89,6 +90,11 @@ fn main() {
                 } else {
                     double_path_iterations += 1;
                     println!("Double path iterations: {:}", double_path_iterations);
+                    if double_path_iterations > 50 {
+                        return Err(anyhow!(
+                            "Unable to locate valid circuit within 50 iterations."
+                        ));
+                    }
                 }
             }
         }
@@ -117,4 +123,5 @@ fn main() {
             ])
         )
     }
+    Ok(())
 }
