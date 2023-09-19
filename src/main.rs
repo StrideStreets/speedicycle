@@ -1,19 +1,27 @@
 mod graph;
 mod io;
 
+use crate::graph::euler::euler_to_simple_node_list;
 use graph::{
     double_path::double_path, euler::make_euler_circuit, make_graph, trim_graph_at_max_distance,
 };
-use io::read_from_dimacs;
+use io::{read_from_dimacs, write_solution_strings_to_file};
 use petgraph::algo::dijkstra;
 use petgraph::stable_graph::{NodeIndex, StableDiGraph, StableGraph};
 use petgraph::Directed;
+use serde_json::json;
 
 fn main() {
-    println!("Hello, world!");
-    if let Ok(gr) = read_from_dimacs::<u32, f64, u32>("routingTopologies.txt") {
+    let filepath = std::env::args().nth(1).expect("No filepath provided.");
+    let source_ind: u32 = std::env::args()
+        .nth(2)
+        .expect("No source index given")
+        .parse()
+        .expect("Source index not a valid integer.");
+
+    if let Ok(gr) = read_from_dimacs::<u32, f64, u32>(&filepath) {
         let max_dist = 3000.0;
-        let starting_node = NodeIndex::from(12u32);
+        let starting_node = NodeIndex::from(source_ind);
         let mut graph: StableGraph<u32, f64> =
             make_graph::<&'static StableGraph<u32, f64, Directed, u32>, u32, f64, u32>(gr);
 
@@ -35,24 +43,40 @@ fn main() {
             &trimmed_graph.graph.edge_count()
         );
 
-        if let Some((_lower_bound, upper_bound)) =
+        if let Some((lower_bound, upper_bound)) =
             double_path::<StableDiGraph<u32, f64, u32>, f64, u32>(
                 NodeIndex::new(12),
                 trimmed_graph,
                 4000.0,
             )
         {
-            println!("Upper bound edge length: {:?}", &upper_bound.edges.len());
-            println!("Upper bound edges: {:?}", &upper_bound.edges);
-            let ec = make_euler_circuit::<StableDiGraph<u32, f64, u32>, f64, u32>(
+            let upper_ec = make_euler_circuit::<StableDiGraph<u32, f64, u32>, f64, u32>(
                 &graph,
                 &upper_bound,
                 starting_node,
             );
+            let lower_ec = make_euler_circuit::<StableDiGraph<u32, f64, u32>, f64, u32>(
+                &graph,
+                &lower_bound,
+                starting_node,
+            );
 
-            println!("Euler Edge Length: {:?}", &ec.edge_list.len());
-            println!("Euler Node Pair Length: {:?}", &ec.node_pair_list.len());
-            println!("Euler Node Pairs: {:?}", &ec.node_pair_list);
+            let _ = write_solution_strings_to_file(
+                "test_solutions_rust.txt",
+                serde_json::to_string(&vec![
+                    &upper_ec.ordered_node_weight_list,
+                    &lower_ec.ordered_node_weight_list,
+                ])
+                .unwrap(),
+            );
+
+            println!(
+                "{}",
+                json!(&vec![
+                    &upper_ec.ordered_node_weight_list,
+                    &lower_ec.ordered_node_weight_list
+                ])
+            )
         }
     }
 }

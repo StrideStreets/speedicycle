@@ -8,8 +8,11 @@ use crate::graph::{GraphBase, Measure};
 
 use std::{
     collections::{HashMap, HashSet, VecDeque},
+    fmt,
+    fmt::Debug,
     hash::Hash,
     iter::Sum,
+    ops::Add,
 };
 
 #[derive(Debug)]
@@ -40,17 +43,18 @@ where
 #[derive(Debug)]
 pub struct EulerCircuit<G, E>
 where
-    G: GraphBase,
+    G: GraphBase + Data + DataMap,
     E: Measure + Copy + Default,
 {
     pub length: E,
     pub node_pair_list: Vec<(G::NodeId, G::NodeId)>,
     pub edge_list: Vec<G::EdgeId>,
+    pub ordered_node_weight_list: Vec<G::NodeWeight>,
 }
 
 impl<G, E> EulerCircuit<G, E>
 where
-    G: GraphBase,
+    G: GraphBase + Data + DataMap,
     E: Copy + Measure + Default,
 {
     pub fn new() -> Self {
@@ -58,6 +62,7 @@ where
             length: E::default(),
             node_pair_list: Vec::new(),
             edge_list: Vec::new(),
+            ordered_node_weight_list: Vec::new(),
         }
     }
 }
@@ -73,6 +78,7 @@ where
         + Data<EdgeWeight = E>
         + DataMap,
     G::NodeId: Hash + Eq,
+    G::NodeWeight: Copy,
     E: Measure + Copy + Default + Sum,
     Ix: IndexType,
 {
@@ -103,6 +109,11 @@ where
     });
 
     let node_order = hierholzer::<G, E>(vertex_edge_mapper, source);
+    let ordered_node_weight_list: Vec<<G as Data>::NodeWeight> = node_order
+        .iter()
+        .filter_map(|node| ref_graph.node_weight(*node))
+        .map(|w| *w)
+        .collect();
     let node_pair_list: Vec<(G::NodeId, G::NodeId)> = node_order
         .iter()
         .zip(node_order.iter().skip(1))
@@ -116,13 +127,15 @@ where
 
     let length: E = edge_list
         .iter()
-        .filter_map(|e| ref_graph.edge_weight(*e)).copied()
+        .filter_map(|e| ref_graph.edge_weight(*e))
+        .copied()
         .sum();
 
     EulerCircuit {
         length,
         node_pair_list,
         edge_list,
+        ordered_node_weight_list,
     }
 }
 
@@ -218,4 +231,24 @@ fn extract_circuit<G, E>(
     }
 
     ordered_nodes.pop_back();
+}
+
+pub fn euler_to_simple_node_list<G, E>(
+    ecircuit: &EulerCircuit<G, E>,
+    ref_graph: &G,
+) -> Vec<G::NodeWeight>
+where
+    G: GraphBase + DataMap,
+    G::NodeWeight: Copy + Debug,
+    E: Copy + Default + Debug + PartialOrd + Add<Output = E>,
+{
+    let mut node_weights: Vec<<G as Data>::NodeWeight> = ecircuit
+        .node_pair_list
+        .iter()
+        .filter_map(|(u, _)| ref_graph.node_weight(*u))
+        .map(|w| *w)
+        .collect();
+    node_weights.push(node_weights[0]);
+
+    node_weights
 }

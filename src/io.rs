@@ -4,6 +4,7 @@ use std::collections::HashMap;
 use std::fmt::Debug;
 use std::fs;
 use std::hash::Hash;
+
 use std::str::FromStr;
 
 #[derive(Debug)]
@@ -69,4 +70,11 @@ where
     } else {
         return Err(anyhow!("Something"));
     }
+}
+
+pub fn write_solution_strings_to_file(
+    path: &str,
+    solution_string: String,
+) -> Result<(), std::io::Error> {
+    fs::write(path, solution_string)
 }
