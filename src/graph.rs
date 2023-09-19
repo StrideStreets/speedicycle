@@ -10,7 +10,6 @@ use crate::io::GraphRepresentation;
 
 use petgraph::{
     algo::{bellman_ford::Paths, FloatMeasure, Measure},
-    graph::Node,
     stable_graph::{IndexType, NodeIndex, StableDiGraph},
     visit::{GraphBase, IntoEdges},
 };

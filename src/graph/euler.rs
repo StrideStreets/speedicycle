@@ -116,8 +116,7 @@ where
 
     let length: E = edge_list
         .iter()
-        .filter_map(|e| ref_graph.edge_weight(*e))
-        .map(|w| *w)
+        .filter_map(|e| ref_graph.edge_weight(*e)).copied()
         .sum();
 
     EulerCircuit {
@@ -145,7 +144,7 @@ where
 
     //Pick up on implementation here, starting with EulerCircuit.cpp line 34
     loop {
-        let mut circuit_start_node: G::NodeId;
+        let circuit_start_node: G::NodeId;
         let mut next_iter_start_ind = 0usize;
         let mut current_ordered_nodes = ordered_nodes.clone();
         let mut iter = current_ordered_nodes.iter().enumerate().skip(0).peekable();
@@ -154,7 +153,7 @@ where
             match iter.next() {
                 Some((_i, node)) => {
                     if !&v_e_mapper
-                        .get(&node)
+                        .get(node)
                         .expect("All nodes should be in mapper")
                         .is_empty()
                     {

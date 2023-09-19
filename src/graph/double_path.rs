@@ -6,7 +6,7 @@ use super::euler::EulerGraph;
 use super::scored::MaxScored;
 
 use super::{
-    path_results_to_distance_and_predecessors, predecessors_to_successors, PredecessorMap,
+    path_results_to_distance_and_predecessors, predecessors_to_successors,
 };
 use num::Bounded;
 use petgraph::{
