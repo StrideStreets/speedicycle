@@ -1,4 +1,4 @@
-### A lightning-fast, general purpose module for finding fixed-cost circuits in weighted, undirected graphs, given a starting position.
+### A lightning-fast, general purpose module for finding fixed-cost circuits in weighted, undirected graphs.
 
 ## Usage
 
