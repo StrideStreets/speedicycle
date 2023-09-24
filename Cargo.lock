@@ -268,18 +268,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "rust_graph_util"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "clap",
- "itertools",
- "num",
- "petgraph",
- "serde_json",
-]
-
-[[package]]
 name = "ryu"
 version = "1.0.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -314,6 +302,18 @@ dependencies = [
  "itoa",
  "ryu",
  "serde",
+]
+
+[[package]]
+name = "speedicycle"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "clap",
+ "itertools",
+ "num",
+ "petgraph",
+ "serde_json",
 ]
 
 [[package]]

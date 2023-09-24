@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   version="1.1"
+   id="svg2"
+   width="1280"
+   height="640"
+   viewBox="0 0 1280 640"
+   sodipodi:docname="speedicycle_social_with_stride.svg"
+   inkscape:version="1.1.2 (0a00cf5339, 2022-02-04)"
+   inkscape:export-filename="/home/kyle/Documents/Coding-Projects/_Stride/rust_graph_util/assets/social_template_with_stride.png"
+   inkscape:export-xdpi="200"
+   inkscape:export-ydpi="200"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs6">
+    <rect
+       x="800.91367"
+       y="308.86715"
+       width="342.97559"
+       height="81.597273"
+       id="rect3802" />
+    <rect
+       x="148.03995"
+       y="495.15164"
+       width="609.6651"
+       height="160.43085"
+       id="rect8626" />
+  </defs>
+  <sodipodi:namedview
+     id="namedview4"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     showgrid="false"
+     showguides="true"
+     inkscape:lockguides="false"
+     inkscape:zoom="0.49860335"
+     inkscape:cx="814.27452"
+     inkscape:cy="424.18488"
+     inkscape:window-width="1803"
+     inkscape:window-height="1138"
+     inkscape:window-x="0"
+     inkscape:window-y="27"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1">
+    <sodipodi:guide
+       position="-309.90152,599.86558"
+       orientation="0,1280"
+       inkscape:locked="false"
+       id="guide907" />
+    <sodipodi:guide
+       position="1240.2358,922.8971"
+       orientation="640,0"
+       inkscape:locked="false"
+       id="guide909" />
+    <sodipodi:guide
+       position="-307.82794,39.314461"
+       orientation="0,-1280"
+       inkscape:locked="false"
+       id="guide911" />
+    <sodipodi:guide
+       position="40.247703,1087.4748"
+       orientation="-640,0"
+       inkscape:locked="false"
+       id="guide913" />
+  </sodipodi:namedview>
+  <g
+     inkscape:groupmode="layer"
+     id="layer1"
+     inkscape:label="Bkg">
+    <rect
+       style="fill:#ffffff;stroke:#000000;stroke-width:5.0999999;stroke-linejoin:bevel;stroke-miterlimit:4;stroke-dasharray:0, 56.09999895;stop-color:#000000;stroke-dashoffset:0;fill-opacity:0.89575487"
+       id="rect15116"
+       width="1325.1628"
+       height="698.72162"
+       x="-19.226191"
+       y="-22.900148" />
+  </g>
+  <text
+     xml:space="preserve"
+     transform="translate(455.98338,-294.67003)"
+     id="text8624"
+     style="font-style:italic;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:80px;line-height:1.25;font-family:'Liberation Mono';-inkscape-font-specification:'Liberation Mono Bold Italic';letter-spacing:0.05px;white-space:pre;shape-inside:url(#rect8626)"><tspan
+       x="148.03906"
+       y="565.30307"
+       id="tspan16194">Speedicycle</tspan></text>
+  <g
+     id="g1085"
+     transform="matrix(0.73249341,0,0,0.72604282,-101.45393,-249.13988)">
+    <g
+       id="g112-3"
+       transform="matrix(2.8927222,-0.61486704,-0.61486704,-2.8927222,591.2312,477.53113)">
+      <path
+         d="m 0,0 -34.381,26.23 -2.16,-16.768 c -25.841,-1.293 -50.404,-11.752 -69.704,-29.824 -5.88652,-11.405374 0.54914,-1.602602 4.16284,-4.99314 17.189997,16.0980003 41.186231,25.10871619 64.111231,26.6607162 L -39.907,-16.664 Z m -60.437749,-199.40102 c -22.531,6.837 -43.696901,21.31851 -56.506901,40.38451 l 17.78565,7.78751 -34.438,26.205 -5.469,-42.869 15.602,6.514 c 14.038,-21.732 35.814814,-35.71425 61.115814,-43.38925 M 60.137,-145.278 c 10.119,20.63 12.797,44.197 7.447,67.132 -4.379637,4.765439 -5.258116,15.571936 6.280636,-1.277939 -0.677724,-20.925381 2.893066,-46.489101 -8.911934,-69.517101 L 81.387,-161.487 l -39.903,-16.664 5.519,42.894 z"
+         style="fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none"
+         id="path114-6"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="ccccccccccccccccccccccc" />
+    </g>
+    <g
+       id="g11993"
+       transform="matrix(3.7795276,0,0,3.7795276,164.36496,147.37632)"
+       style="display:inline">
+      <g
+         id="g112"
+         transform="matrix(0.7824648,0,0,-0.7824648,128.39684,90.591783)">
+        <path
+           d="m 0,0 -34.381,26.23 -2.16,-16.768 c -25.841,-1.293 -50.404,-11.752 -69.704,-29.824 -21.295,-19.94 -33.715,-46.706 -34.974,-75.368 -0.098,-2.246 1.356,-4.201 3.411,-4.822 0.378,-0.115 0.777,-0.186 1.192,-0.205 2.659,-0.116 4.908,1.944 5.023,4.603 1.151,26.133 12.489,50.553 31.935,68.758 17.19,16.098 38.937,25.564 61.862,27.116 l -2.111,-16.384 z m 22.026,-192.935 c -1.229,2.362 -4.138,3.277 -6.5,2.048 -23.204,-12.068 -50.02,-14.455 -75.511,-6.717 -22.531,6.837 -41.55,20.968 -54.36,40.034 l 15.186,6.341 -34.438,26.205 -5.469,-42.869 15.602,6.514 c 14.038,-21.732 35.377,-37.774 60.678,-45.449 27.917,-8.471 57.308,-5.846 82.761,7.395 2.36,1.225 3.278,4.138 2.051,6.498 m 38.111,47.657 c 10.119,20.63 12.797,44.197 7.447,67.132 -6.045,25.946 -21.523,47.976 -43.577,62.033 -2.245,1.434 -2.904,4.413 -1.475,6.655 1.433,2.245 4.413,2.9 6.655,1.474 24.193,-15.424 41.163,-39.561 47.785,-67.973 6.003,-25.753 2.78,-52.251 -9.025,-75.279 l 13.44,-10.251 -39.903,-16.664 5.519,42.894 z"
+           style="fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none"
+           id="path114"
+           inkscape:connector-curvature="0" />
+      </g>
+    </g>
+  </g>
+  <g
+     inkscape:groupmode="layer"
+     inkscape:label="Image"
+     id="g8"
+     sodipodi:insensitive="true" />
+  <path
+     style="fill:none;stroke:#000000;stroke-width:5.19846;stroke-linecap:butt;stroke-linejoin:bevel;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+     d="M 609.08709,309.19095 H 1145.372"
+     id="path1155" />
+  <text
+     xml:space="preserve"
+     id="text3800"
+     style="font-size:32px;line-height:1.25;font-family:sans-serif;letter-spacing:0.05px;white-space:pre;shape-inside:url(#rect3802)"
+     x="168.58749"
+     y="0"
+     transform="translate(0,24)"><tspan
+       x="970.66055"
+       y="337.34007"
+       id="tspan16198"><tspan
+         style="font-family:'Liberation Mono';-inkscape-font-specification:'Liberation Mono';text-align:end;text-anchor:end"
+         id="tspan16196">By Stride</tspan></tspan></text>
+</svg>

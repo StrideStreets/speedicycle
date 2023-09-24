@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="210mm"
+   height="297mm"
+   viewBox="0 0 210 297"
+   version="1.1"
+   id="svg3631"
+   inkscape:version="1.1.2 (0a00cf5339, 2022-02-04)"
+   sodipodi:docname="speedicycle_logo.svg"
+   inkscape:export-filename="/home/kyle/Documents/Coding-Projects/_Stride/rust_graph_util/assets/speedicycle_logo_filled_GH.png"
+   inkscape:export-xdpi="200"
+   inkscape:export-ydpi="200"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <defs
+     id="defs3625">
+    <rect
+       x="148.03994"
+       y="495.15164"
+       width="609.66513"
+       height="160.43084"
+       id="rect8626" />
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="0.59851913"
+     inkscape:cx="183.78694"
+     inkscape:cy="739.32474"
+     inkscape:document-units="mm"
+     inkscape:current-layer="layer4"
+     showgrid="false"
+     showguides="true"
+     inkscape:guide-bbox="true"
+     inkscape:window-width="1803"
+     inkscape:window-height="1138"
+     inkscape:window-x="0"
+     inkscape:window-y="27"
+     inkscape:window-maximized="1"
+     inkscape:pagecheckerboard="0">
+    <sodipodi:guide
+       position="72.922013,252.88982"
+       orientation="0,1"
+       id="guide4178"
+       inkscape:locked="false" />
+    <sodipodi:guide
+       position="99.099147,43.94019"
+       orientation="0,1"
+       id="guide4180"
+       inkscape:locked="false" />
+  </sodipodi:namedview>
+  <metadata
+     id="metadata3628">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:groupmode="layer"
+     id="layer4"
+     inkscape:label="Bkg">
+    <rect
+       style="fill:#ffffff;stroke:#000000;stroke-width:0.0499999;stop-color:#000000;stroke-miterlimit:4;stroke-dasharray:0, 0.54999891;stroke-dashoffset:0;fill-opacity:0.89573449"
+       id="rect19350"
+       width="212.4463"
+       height="208.94963"
+       x="-0.28424907"
+       y="44.11018" />
+  </g>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     style="display:inline">
+    <g
+       id="g11993"
+       transform="translate(0.01320793,-14.655723)">
+      <g
+         id="g112"
+         transform="matrix(0.7824648,0,0,-0.7824648,128.39684,90.591783)">
+        <path
+           d="m 0,0 -34.381,26.23 -2.16,-16.768 c -25.841,-1.293 -50.404,-11.752 -69.704,-29.824 -21.295,-19.94 -33.715,-46.706 -34.974,-75.368 -0.098,-2.246 1.356,-4.201 3.411,-4.822 0.378,-0.115 0.777,-0.186 1.192,-0.205 2.659,-0.116 4.908,1.944 5.023,4.603 1.151,26.133 12.489,50.553 31.935,68.758 17.19,16.098 38.937,25.564 61.862,27.116 l -2.111,-16.384 z m 22.026,-192.935 c -1.229,2.362 -4.138,3.277 -6.5,2.048 -23.204,-12.068 -50.02,-14.455 -75.511,-6.717 -22.531,6.837 -41.55,20.968 -54.36,40.034 l 15.186,6.341 -34.438,26.205 -5.469,-42.869 15.602,6.514 c 14.038,-21.732 35.377,-37.774 60.678,-45.449 27.917,-8.471 57.308,-5.846 82.761,7.395 2.36,1.225 3.278,4.138 2.051,6.498 m 38.111,47.657 c 10.119,20.63 12.797,44.197 7.447,67.132 -6.045,25.946 -21.523,47.976 -43.577,62.033 -2.245,1.434 -2.904,4.413 -1.475,6.655 1.433,2.245 4.413,2.9 6.655,1.474 24.193,-15.424 41.163,-39.561 47.785,-67.973 6.003,-25.753 2.78,-52.251 -9.025,-75.279 l 13.44,-10.251 -39.903,-16.664 5.519,42.894 z"
+           style="fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none"
+           id="path114"
+           inkscape:connector-curvature="0" />
+      </g>
+    </g>
+  </g>
+  <g
+     inkscape:groupmode="layer"
+     id="layer2"
+     inkscape:label="Layer 2">
+    <g
+       id="g112-3"
+       transform="matrix(0.76536607,-0.16268357,-0.16268357,-0.76536607,112.9549,72.697737)">
+      <path
+         d="m 0,0 -34.381,26.23 -2.16,-16.768 c -25.841,-1.293 -50.404,-11.752 -69.704,-29.824 -5.88652,-11.405374 0.54914,-1.602602 4.16284,-4.99314 17.189997,16.0980003 41.186231,25.10871619 64.111231,26.6607162 L -39.907,-16.664 Z m -60.437749,-199.40102 c -22.531,6.837 -43.696901,21.31851 -56.506901,40.38451 l 17.78565,7.78751 -34.438,26.205 -5.469,-42.869 15.602,6.514 c 14.038,-21.732 35.814814,-35.71425 61.115814,-43.38925 M 60.137,-145.278 c 10.119,20.63 12.797,44.197 7.447,67.132 -4.379637,4.765439 -5.258116,15.571936 6.280636,-1.277939 -0.677724,-20.925381 2.893066,-46.489101 -8.911934,-69.517101 L 81.387,-161.487 l -39.903,-16.664 5.519,42.894 z"
+         style="fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none"
+         id="path114-6"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="ccccccccccccccccccccccc" />
+    </g>
+  </g>
+  <g
+     inkscape:groupmode="layer"
+     id="layer3"
+     inkscape:label="Layer 3"
+     sodipodi:insensitive="true">
+    <text
+       xml:space="preserve"
+       transform="matrix(0.26458333,0,0,0.26458333,-6.0770481,10.235017)"
+       id="text8624"
+       style="font-style:italic;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:80px;line-height:1.25;font-family:'Liberation Mono';-inkscape-font-specification:'Liberation Mono Bold Italic';letter-spacing:0.05px;white-space:pre;shape-inside:url(#rect8626)"><tspan
+         x="148.03906"
+         y="565.30307"
+         id="tspan20075">Speedicycle</tspan></text>
+  </g>
+</svg>
