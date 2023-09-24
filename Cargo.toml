@@ -2,6 +2,8 @@
 name = "speedicycle"
 version = "0.1.0"
 edition = "2021"
+description = "A simple tool for locating fixed-length circuits in undirected graphs, built atop petgraph"
+license = "MIT"
 
 [[bin]]
 name= "speedicycle"
