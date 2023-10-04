@@ -14,24 +14,23 @@ use std::{
 };
 
 #[derive(Debug)]
-pub struct EulerGraph<G, E>
+pub struct EulerGraph<G>
 where
-    G: GraphBase,
-    E: Measure + Copy + Default,
+    G: GraphBase + Data,
 {
-    pub length: E,
+    pub length: G::EdgeWeight,
     pub edges: HashSet<(G::NodeId, G::NodeId)>,
     pub vertices: HashSet<G::NodeId>,
 }
 
-impl<G, E> EulerGraph<G, E>
+impl<G> EulerGraph<G>
 where
-    G: GraphBase,
-    E: Copy + Measure + Default,
+    G: GraphBase + Data,
+    G::EdgeWeight: Default,
 {
     pub fn new() -> Self {
         Self {
-            length: E::default(),
+            length: G::EdgeWeight::default(),
             edges: HashSet::new(),
             vertices: HashSet::new(),
         }
@@ -39,25 +38,24 @@ where
 }
 
 #[derive(Debug)]
-pub struct EulerCircuit<G, E>
+pub struct EulerCircuit<G>
 where
     G: GraphBase + Data + DataMap,
-    E: Measure + Copy + Default,
 {
-    pub length: E,
+    pub length: G::EdgeWeight,
     pub node_pair_list: Vec<(G::NodeId, G::NodeId)>,
     pub edge_list: Vec<G::EdgeId>,
     pub ordered_node_weight_list: Vec<G::NodeWeight>,
 }
 
-impl<G, E> EulerCircuit<G, E>
+impl<G> EulerCircuit<G>
 where
     G: GraphBase + Data + DataMap,
-    E: Copy + Measure + Default,
+    G::EdgeWeight: Default + Sum,
 {
     pub fn new() -> Self {
         Self {
-            length: E::default(),
+            length: G::EdgeWeight::default(),
             node_pair_list: Vec::new(),
             edge_list: Vec::new(),
             ordered_node_weight_list: Vec::new(),
@@ -65,19 +63,16 @@ where
     }
 }
 
-pub fn make_euler_circuit<G, E, Ix>(
-    ref_graph: &StableDiGraph<G::NodeWeight, E, Ix>,
-    egraph: &EulerGraph<G, E>,
+pub fn make_euler_circuit<G, Ix>(
+    ref_graph: &StableDiGraph<G::NodeWeight, G::EdgeWeight, Ix>,
+    egraph: &EulerGraph<G>,
     source: G::NodeId,
-) -> EulerCircuit<G, E>
+) -> EulerCircuit<G>
 where
-    G: GraphBase<NodeId = NodeIndex<Ix>, EdgeId = EdgeIndex<Ix>>
-        + NodeIndexable
-        + Data<EdgeWeight = E>
-        + DataMap,
+    G: GraphBase<NodeId = NodeIndex<Ix>, EdgeId = EdgeIndex<Ix>> + NodeIndexable + Data + DataMap,
     G::NodeId: Hash + Eq,
     G::NodeWeight: Copy,
-    E: Measure + Copy + Default + Sum,
+    G::EdgeWeight: Copy + Default + Debug + Measure + PartialEq + PartialOrd + Sum,
     Ix: IndexType,
 {
     let mut vertex_edge_mapper: HashMap<G::NodeId, VecDeque<G::NodeId>> = HashMap::new();
@@ -106,7 +101,7 @@ where
         };
     });
 
-    let node_order = hierholzer_new::<G, E>(&vertex_edge_mapper, source);
+    let node_order = hierholzer_new::<G, G::EdgeWeight>(&vertex_edge_mapper, source);
 
     let ordered_node_weight_list: Vec<<G as Data>::NodeWeight> = node_order
         .iter()
@@ -124,7 +119,7 @@ where
         .filter_map(|(s, t)| ref_graph.find_edge(*s, *t))
         .collect();
 
-    let length: E = edge_list
+    let length = edge_list
         .iter()
         .filter_map(|e| ref_graph.edge_weight(*e))
         .copied()

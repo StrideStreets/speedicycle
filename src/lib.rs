@@ -1,16 +1,23 @@
 pub mod graph;
 pub mod io;
 
+use serde::Serialize;
+use std::fmt::Debug;
+use std::hash::Hash;
+use std::iter::Sum;
+use std::ops::{Add, AddAssign, Div, Mul, Neg, RemAssign};
+use std::str::FromStr;
+
 use anyhow::{anyhow, Error};
 use clap::Parser;
 use graph::{
     double_path::double_path, euler::make_euler_circuit, make_graph, trim_graph_at_max_distance,
 };
 use io::{read_from_dimacs, write_solution_strings_to_file};
-use petgraph::algo::dijkstra;
-use petgraph::stable_graph::{StableDiGraph, StableGraph};
+use num::Bounded;
+use petgraph::algo::{dijkstra, FloatMeasure, Measure};
+use petgraph::stable_graph::{IndexType, StableDiGraph, StableGraph};
 use petgraph::Directed;
-use serde_json::json;
 
 #[derive(Parser)]
 pub struct CLIArgs {
@@ -27,18 +34,38 @@ pub struct RoutingResults<N> {
     lower: Vec<N>,
 }
 
-pub fn make_route_from_dimacs(
+pub fn make_route_from_dimacs<N, E, Ix>(
     args: CLIArgs,
     return_routes: bool,
-) -> Result<Option<RoutingResults<u32>>, Error> {
-    if let Ok(gr) = read_from_dimacs::<u32, f64, u32>(&args.input_path) {
+) -> Result<Option<RoutingResults<N>>, Error>
+where
+    Ix: IndexType + FromStr + From<u32>,
+    <Ix as FromStr>::Err: Debug,
+    N: 'static + FromStr + Debug + Eq + Hash + Copy + Serialize,
+    E: 'static
+        + From<Ix>
+        + Copy
+        + Debug
+        + Measure
+        + Bounded
+        + FloatMeasure
+        + AddAssign
+        + RemAssign
+        + Div<f64, Output = E>
+        + Add<f64, Output = E>
+        + From<f64>
+        + Neg<Output = E>
+        + Mul<Output = E>
+        + Sum,
+{
+    if let Ok(gr) = read_from_dimacs::<N, E, Ix>(&args.input_path) {
         let max_dist = args.target_length * (0.6);
         let target_length = args.target_length;
 
-        println!("{:?}", &gr.node_map.get(&args.source_vertex));
+        println!("{:?}", &gr.node_map.get(&args.source_vertex.into()));
 
         let (mut graph, node_index_mapper) =
-            make_graph::<&'static StableGraph<u32, f64, Directed, u32>, u32, f64, u32>(gr);
+            make_graph::<&'static StableGraph<N, E, Directed, Ix>, Ix>(gr);
 
         println!(
             "Nodes: {}, Edges: {}",
@@ -47,7 +74,7 @@ pub fn make_route_from_dimacs(
         );
 
         let starting_node = *node_index_mapper
-            .get(&args.source_vertex)
+            .get(&args.source_vertex.into())
             .expect("Invalid source vertex");
 
         println!("{:?}", &graph.node_weight(starting_node));
@@ -55,7 +82,7 @@ pub fn make_route_from_dimacs(
         //     get_distances(&graph, starting_node, max_dist);
 
         let distances = dijkstra(&graph, starting_node, None, |e| *e.weight());
-        let trimmed_graph = trim_graph_at_max_distance(&mut graph, &distances, max_dist);
+        let trimmed_graph = trim_graph_at_max_distance(&mut graph, &distances, max_dist.into());
 
         println!(
             "Nodes: {}, Edges: {}",
@@ -66,22 +93,20 @@ pub fn make_route_from_dimacs(
         let mut lower_ec;
         let mut double_path_iterations = 1;
         loop {
-            if let Some((lower_bound, upper_bound)) =
-                double_path::<StableDiGraph<u32, f64, u32>, f64, u32>(
-                    starting_node,
-                    &trimmed_graph,
-                    target_length,
-                )
-            {
+            if let Some((lower_bound, upper_bound)) = double_path::<StableDiGraph<N, E, Ix>, Ix>(
+                starting_node,
+                &trimmed_graph,
+                target_length.into(),
+            ) {
                 println!("{:?}", &upper_bound);
 
-                upper_ec = make_euler_circuit::<StableDiGraph<u32, f64, u32>, f64, u32>(
+                upper_ec = make_euler_circuit::<StableDiGraph<N, E, Ix>, Ix>(
                     &graph,
                     &upper_bound,
                     starting_node,
                 );
                 println!("{:?}", &upper_ec);
-                lower_ec = make_euler_circuit::<StableDiGraph<u32, f64, u32>, f64, u32>(
+                lower_ec = make_euler_circuit::<StableDiGraph<N, E, Ix>, Ix>(
                     &graph,
                     &lower_bound,
                     starting_node,

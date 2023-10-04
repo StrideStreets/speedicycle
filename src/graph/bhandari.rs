@@ -70,8 +70,7 @@ where
     G::NodeId: Eq + Hash,
     G::NodeWeight: Clone + Debug,
     E: FloatMeasure + Copy + Neg<Output = E> + Mul<Output = E> + RemAssign + Bounded,
-    Ix: IndexType,
-    NodeIndex<Ix>: From<u32>,
+    Ix: IndexType + From<u32>,
 {
     let source = p.sequence[0];
     let target = p
@@ -137,14 +136,14 @@ where
 }
 
 //In the future, think about implementing this as an associated method on EulerGraph
-pub fn unweave_paths<G, E, Ix>(p1: Path<G, E>, p2: Path<G, E>) -> EulerGraph<G, E>
+pub fn unweave_paths<G, E, Ix>(p1: Path<G, E>, p2: Path<G, E>) -> EulerGraph<G>
 where
     G: Visitable + NodeIndexable + Data<EdgeWeight = E> + GraphBase<NodeId = NodeIndex<Ix>>,
     G::NodeId: Copy,
     G::NodeId: Eq + Hash,
     E: Copy + Measure + Bounded,
 {
-    let mut circuit_set = EulerGraph::<G, E>::new();
+    let mut circuit_set = EulerGraph::<G>::new();
 
     for i in 0..(p1.sequence.len() - 1) {
         circuit_set

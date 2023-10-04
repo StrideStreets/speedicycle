@@ -11,7 +11,7 @@ use crate::io::GraphRepresentation;
 use petgraph::{
     algo::{bellman_ford::Paths, FloatMeasure, Measure},
     stable_graph::{IndexType, NodeIndex, StableDiGraph},
-    visit::{GraphBase, IntoEdges},
+    visit::{Data, GraphBase, IntoEdges},
 };
 
 use std::{collections::HashMap, hash::Hash};
@@ -27,16 +27,19 @@ pub type DistanceMap<G, E> = HashMap<<G as GraphBase>::NodeId, E>;
 //algorithm, we need to "manually" construct an undirected graph using the
 //directed graph type. That is, we will need to add two edges for each
 //edge in our adjacency list (one in each direction).
-pub fn make_graph<G, N, E, Ix>(
-    gr: GraphRepresentation<N, E, Ix>,
-) -> (StableDiGraph<N, E, Ix>, HashMap<Ix, G::NodeId>)
+pub fn make_graph<G, Ix>(
+    gr: GraphRepresentation<G::NodeWeight, G::EdgeWeight, Ix>,
+) -> (
+    StableDiGraph<G::NodeWeight, G::EdgeWeight, Ix>,
+    HashMap<Ix, G::NodeId>,
+)
 where
-    G: GraphBase<NodeId = NodeIndex<Ix>> + IntoEdges,
-    N: Eq + Hash + Copy + Debug,
+    G: GraphBase<NodeId = NodeIndex<Ix>> + IntoEdges + Data,
+    G::NodeWeight: Copy,
+    G::EdgeWeight: Copy,
     Ix: IndexType,
-    E: Copy + Debug,
 {
-    let mut g = StableDiGraph::<N, E, Ix>::default();
+    let mut g = StableDiGraph::default();
     let mut node_index_mapper: HashMap<Ix, G::NodeId> = HashMap::new();
 
     gr.node_map.iter().for_each(|(k, v)| {
@@ -105,16 +108,16 @@ pub fn path_results_to_distance_and_predecessors<E, Ix>(
     HashMap<NodeIndex<Ix>, NodeIndex<Ix>>,
 )
 where
-    NodeIndex<Ix>: Eq + Hash + From<u32> + Copy,
+    NodeIndex<Ix>: Eq + Hash + From<Ix> + Copy,
     E: Copy + Debug,
-    Ix: Debug,
+    Ix: Debug + From<u32>,
 {
     //println!("{:?}", &paths);
     let mut predecessor_map: HashMap<NodeIndex<Ix>, NodeIndex<Ix>> = HashMap::new();
 
     (0..)
         .zip(paths.predecessors.iter())
-        .map(|(i, pred)| (NodeIndex::<Ix>::from(i), pred))
+        .map(|(i, pred)| (NodeIndex::<Ix>::from(i.into()), pred))
         .for_each(|(node, predecessor)| {
             if let Some(pred) = predecessor {
                 predecessor_map.insert(node, *pred);
@@ -124,7 +127,7 @@ where
     let mut distance_map: HashMap<NodeIndex<Ix>, E> = HashMap::new();
     (0..)
         .zip(paths.distances.iter())
-        .map(|(i, cost)| (NodeIndex::<Ix>::from(i), cost))
+        .map(|(i, cost)| (NodeIndex::<Ix>::from(i.into()), cost))
         .for_each(|(node, cost)| {
             if predecessor_map.get(&node).is_some() {
                 distance_map.insert(node, *cost);
