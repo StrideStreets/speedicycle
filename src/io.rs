@@ -1,6 +1,7 @@
 use anyhow::{anyhow, Error};
 use itertools::Itertools;
-use std::collections::HashMap;
+use serde::{Deserialize, Serialize};
+use std::collections::{HashMap, HashSet};
 use std::fmt::Debug;
 use std::fs;
 use std::hash::Hash;
@@ -20,6 +21,14 @@ impl<N, E, Ix> GraphRepresentation<N, E, Ix> {
             edge_list: e,
         }
     }
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct EdgeRepresentation<N, E> {
+    pub edge_id: String,
+    pub start_node: N,
+    pub end_node: N,
+    pub weight: E,
 }
 
 pub fn read_from_dimacs<N, E, Ix>(filepath: &str) -> Result<GraphRepresentation<N, E, Ix>, Error>
@@ -72,6 +81,55 @@ where
     }
 }
 
+pub fn read_from_edges_json<N, E, Ix>(
+    json_string: String,
+) -> Result<GraphRepresentation<N, E, Ix>, Error>
+where
+    for<'de> N: Deserialize<'de>,
+    for<'de> E: Deserialize<'de>,
+    N: PartialEq + PartialOrd + Eq + Hash + Copy,
+    (E, N, N): PartialEq + PartialOrd + Eq + Hash,
+    Ix: Eq + PartialEq + Hash + Copy + TryFrom<u32>,
+    <Ix as TryFrom<u32>>::Error: Debug,
+{
+    if let Ok(edges_list) = serde_json::from_str::<Vec<EdgeRepresentation<N, E>>>(&json_string) {
+        let mut node_weight_to_index = HashMap::<N, Ix>::new();
+        let mut edge_list = Vec::<(Ix, Ix, E)>::new();
+        let mut nodes = HashSet::<N>::new();
+        let mut edges = HashSet::<(E, N, N)>::new();
+
+        edges_list.into_iter().for_each(|edge| {
+            nodes.insert(edge.start_node);
+            nodes.insert(edge.end_node);
+            if edge.start_node < edge.end_node {
+                edges.insert((edge.weight, edge.start_node, edge.end_node));
+            }
+        });
+
+        (0..).zip(nodes.iter()).for_each(|(i, node_id)| {
+            if let Ok(ind) = Ix::try_from(i) {
+                node_weight_to_index.insert(*node_id, ind);
+            }
+        });
+
+        edges.into_iter().for_each(|(w, u, v)| {
+            if let (Some(n1), Some(n2)) =
+                (node_weight_to_index.get(&u), node_weight_to_index.get(&v))
+            {
+                edge_list.push((*n1, *n2, w));
+            }
+        });
+
+        let node_map: HashMap<Ix, N> = node_weight_to_index
+            .into_iter()
+            .map(|(k, v)| (v, k))
+            .collect();
+
+        return Ok(GraphRepresentation::new(node_map, edge_list));
+    } else {
+        return Err(anyhow!("something"));
+    }
+}
 pub fn write_solution_strings_to_file(
     path: &str,
     solution_string: String,

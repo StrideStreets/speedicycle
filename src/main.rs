@@ -1,4 +1,3 @@
-#![warn(unused_crate_dependencies)]
 extern crate speedicycle;
 use anyhow::Error;
 use clap::Parser;
