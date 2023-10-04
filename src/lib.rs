@@ -22,7 +22,15 @@ pub struct CLIArgs {
     target_length: f64,
 }
 
-pub fn make_route_from_dimacs(args: CLIArgs) -> Result<(), Error> {
+pub struct RoutingResults<N> {
+    upper: Vec<N>,
+    lower: Vec<N>,
+}
+
+pub fn make_route_from_dimacs(
+    args: CLIArgs,
+    return_routes: bool,
+) -> Result<Option<RoutingResults<u32>>, Error> {
     if let Ok(gr) = read_from_dimacs::<u32, f64, u32>(&args.input_path) {
         let max_dist = args.target_length * (0.6);
         let target_length = args.target_length;
@@ -96,6 +104,12 @@ pub fn make_route_from_dimacs(args: CLIArgs) -> Result<(), Error> {
                 }
             }
         }
+
+        let solutions_vector = vec![
+            upper_ec.ordered_node_weight_list,
+            lower_ec.ordered_node_weight_list,
+        ];
+
         let _ = write_solution_strings_to_file(
             &[
                 &args
@@ -106,21 +120,18 @@ pub fn make_route_from_dimacs(args: CLIArgs) -> Result<(), Error> {
                 "sols.txt",
             ]
             .join("_"),
-            serde_json::to_string(&vec![
-                &upper_ec.ordered_node_weight_list,
-                &lower_ec.ordered_node_weight_list,
-            ])
-            .unwrap(),
+            serde_json::to_string(&solutions_vector).unwrap(),
         );
 
-        println!(
-            "{}",
-            json!(&vec![
-                &upper_ec.ordered_node_weight_list,
-                &lower_ec.ordered_node_weight_list
-            ])
-        )
+        if return_routes {
+            return Ok(Some(RoutingResults {
+                upper: solutions_vector[0].clone(),
+                lower: solutions_vector[1].clone(),
+            }));
+        }
     }
 
-    Ok(())
+    Ok(None)
 }
+
+//pub fn make_route_from_json
