@@ -1,7 +1,7 @@
 pub mod graph;
 pub mod io;
 
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 use std::hash::Hash;
 use std::iter::Sum;
@@ -13,7 +13,7 @@ use clap::Parser;
 use graph::{
     double_path::double_path, euler::make_euler_circuit, make_graph, trim_graph_at_max_distance,
 };
-use io::{read_from_dimacs, write_solution_strings_to_file};
+use io::{read_from_dimacs, read_from_edges_json, write_solution_strings_to_file};
 use num::Bounded;
 use petgraph::algo::{dijkstra, FloatMeasure, Measure};
 use petgraph::stable_graph::{IndexType, StableDiGraph, StableGraph};
@@ -159,4 +159,99 @@ where
     Ok(None)
 }
 
-//pub fn make_route_from_json
+pub fn make_route_from_edges_json<N, E, Ix>(
+    json_string: String,
+    source_vertex_id: N,
+    target_length: E,
+) -> Result<Option<RoutingResults<N>>, Error>
+where
+    Ix: IndexType + FromStr + From<u32>,
+    <Ix as FromStr>::Err: Debug,
+    for<'de> N: Deserialize<'de>,
+    for<'de> E: Deserialize<'de>,
+    N: 'static + FromStr + Debug + Eq + Hash + Copy + PartialOrd,
+    E: 'static
+        + From<Ix>
+        + Copy
+        + Eq
+        + Hash
+        + Debug
+        + Measure
+        + Bounded
+        + FloatMeasure
+        + AddAssign
+        + RemAssign
+        + Div<f64, Output = E>
+        + Add<f64, Output = E>
+        + From<f64>
+        + Neg<Output = E>
+        + Mul<Output = E>
+        + Sum,
+{
+    if let Ok((gr, weight_to_node_id)) = read_from_edges_json::<N, E, Ix>(json_string) {
+        let max_dist = target_length * (0.6.into());
+
+        let (mut graph, node_index_mapper) =
+            make_graph::<&'static StableGraph<N, E, Directed, Ix>, Ix>(gr);
+
+        let starting_node = *weight_to_node_id
+            .get(&source_vertex_id)
+            .and_then(|idx| node_index_mapper.get(idx))
+            .expect("Invalid source vertex");
+
+        let distances = dijkstra(&graph, starting_node, None, |e| *e.weight());
+        let trimmed_graph = trim_graph_at_max_distance(&mut graph, &distances, max_dist.into());
+
+        let mut upper_ec;
+        let mut lower_ec;
+        let mut double_path_iterations = 1;
+        loop {
+            if let Some((lower_bound, upper_bound)) = double_path::<StableDiGraph<N, E, Ix>, Ix>(
+                starting_node,
+                &trimmed_graph,
+                target_length.into(),
+            ) {
+                println!("{:?}", &upper_bound);
+
+                upper_ec = make_euler_circuit::<StableDiGraph<N, E, Ix>, Ix>(
+                    &graph,
+                    &upper_bound,
+                    starting_node,
+                );
+                println!("{:?}", &upper_ec);
+                lower_ec = make_euler_circuit::<StableDiGraph<N, E, Ix>, Ix>(
+                    &graph,
+                    &lower_bound,
+                    starting_node,
+                );
+
+                if upper_ec.ordered_node_weight_list.first()
+                    == upper_ec.ordered_node_weight_list.last()
+                    && lower_ec.ordered_node_weight_list.first()
+                        == lower_ec.ordered_node_weight_list.last()
+                {
+                    break;
+                } else {
+                    double_path_iterations += 1;
+                    println!("Double path iterations: {:}", double_path_iterations);
+                    if double_path_iterations > 50 {
+                        return Err(anyhow!(
+                            "Unable to locate valid circuit within 50 iterations."
+                        ));
+                    }
+                }
+            }
+        }
+
+        let solutions_vector = vec![
+            upper_ec.ordered_node_weight_list,
+            lower_ec.ordered_node_weight_list,
+        ];
+
+        return Ok(Some(RoutingResults {
+            upper: solutions_vector[0].clone(),
+            lower: solutions_vector[1].clone(),
+        }));
+    }
+    Err(anyhow!("something"))
+}

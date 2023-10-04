@@ -83,7 +83,7 @@ where
 
 pub fn read_from_edges_json<N, E, Ix>(
     json_string: String,
-) -> Result<GraphRepresentation<N, E, Ix>, Error>
+) -> Result<(GraphRepresentation<N, E, Ix>, HashMap<N, Ix>), Error>
 where
     for<'de> N: Deserialize<'de>,
     for<'de> E: Deserialize<'de>,
@@ -120,12 +120,12 @@ where
             }
         });
 
-        let node_map: HashMap<Ix, N> = node_weight_to_index
-            .into_iter()
-            .map(|(k, v)| (v, k))
-            .collect();
+        let node_map: HashMap<Ix, N> = node_weight_to_index.iter().map(|(k, v)| (*v, *k)).collect();
 
-        return Ok(GraphRepresentation::new(node_map, edge_list));
+        return Ok((
+            GraphRepresentation::new(node_map, edge_list),
+            node_weight_to_index,
+        ));
     } else {
         return Err(anyhow!("something"));
     }
