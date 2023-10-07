@@ -37,7 +37,7 @@ pub struct RoutingResults<N> {
 pub fn make_route_from_dimacs<N, E, Ix>(
     args: CLIArgs,
     return_routes: bool,
-) -> Result<Option<RoutingResults<N>>, Error>
+) -> Result<RoutingResults<N>, Error>
 where
     Ix: IndexType + FromStr + From<u32>,
     <Ix as FromStr>::Err: Debug,
@@ -149,21 +149,23 @@ where
         );
 
         if return_routes {
-            return Ok(Some(RoutingResults {
+            return Ok(RoutingResults {
                 upper: solutions_vector[0].clone(),
                 lower: solutions_vector[1].clone(),
-            }));
+            });
         }
     }
 
-    Ok(None)
+    Err(anyhow!(
+        "Failed to produce valid circuit for provided input."
+    ))
 }
 
 pub fn make_route_from_edges_json<N, E, Ix>(
     json_string: String,
     source_vertex_id: N,
     target_length: E,
-) -> Result<Option<RoutingResults<N>>, Error>
+) -> Result<RoutingResults<N>, Error>
 where
     Ix: IndexType + FromStr + From<u32>,
     <Ix as FromStr>::Err: Debug,
@@ -248,10 +250,12 @@ where
             lower_ec.ordered_node_weight_list,
         ];
 
-        return Ok(Some(RoutingResults {
+        return Ok(RoutingResults {
             upper: solutions_vector[0].clone(),
             lower: solutions_vector[1].clone(),
-        }));
+        });
     }
-    Err(anyhow!("something"))
+    Err(anyhow!(
+        "Failed to produce valid circuit for provided input."
+    ))
 }
