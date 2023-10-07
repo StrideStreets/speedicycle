@@ -175,8 +175,6 @@ where
     E: 'static
         + From<Ix>
         + Copy
-        + Eq
-        + Hash
         + Debug
         + Measure
         + Bounded

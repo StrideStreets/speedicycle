@@ -88,7 +88,7 @@ where
     for<'de> N: Deserialize<'de>,
     for<'de> E: Deserialize<'de>,
     N: PartialEq + PartialOrd + Eq + Hash + Copy,
-    (E, N, N): PartialEq + PartialOrd + Eq + Hash,
+    (E, N, N): PartialEq + PartialOrd,
     Ix: Eq + PartialEq + Hash + Copy + TryFrom<u32>,
     <Ix as TryFrom<u32>>::Error: Debug,
 {
@@ -96,13 +96,15 @@ where
         let mut node_weight_to_index = HashMap::<N, Ix>::new();
         let mut edge_list = Vec::<(Ix, Ix, E)>::new();
         let mut nodes = HashSet::<N>::new();
-        let mut edges = HashSet::<(E, N, N)>::new();
+        let mut edges = Vec::<(E, N, N)>::new();
 
         edges_list.into_iter().for_each(|edge| {
             nodes.insert(edge.start_node);
             nodes.insert(edge.end_node);
             if edge.start_node < edge.end_node {
-                edges.insert((edge.weight, edge.start_node, edge.end_node));
+                edges.push((edge.weight, edge.start_node, edge.end_node));
+            } else {
+                edges.push((edge.weight, edge.start_node, edge.end_node));
             }
         });
 
