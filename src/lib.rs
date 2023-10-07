@@ -30,8 +30,8 @@ pub struct CLIArgs {
 }
 
 pub struct RoutingResults<N> {
-    upper: Vec<N>,
-    lower: Vec<N>,
+    pub upper: Vec<N>,
+    pub lower: Vec<N>,
 }
 
 pub fn make_route_from_dimacs<N, E, Ix>(
