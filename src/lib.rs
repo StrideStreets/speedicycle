@@ -252,8 +252,9 @@ where
             upper: solutions_vector[0].clone(),
             lower: solutions_vector[1].clone(),
         });
+    } else {
+        Err(anyhow!(
+            "Failed to produce valid circuit for provided input."
+        ))
     }
-    Err(anyhow!(
-        "Failed to produce valid circuit for provided input."
-    ))
 }
