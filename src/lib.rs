@@ -188,16 +188,25 @@ where
         + Mul<Output = E>
         + Sum,
 {
+    println!("Source vertex ID: {:?}", &source_vertex_id);
+    println!("Target distance: {:?}", &target_length);
     if let Ok((gr, weight_to_node_id)) = read_from_edges_json::<N, E, Ix>(json_string) {
+        println!("Made graph from provided JSON");
         let max_dist = target_length * (0.6.into());
 
         let (mut graph, node_index_mapper) =
             make_graph::<&'static StableGraph<N, E, Directed, Ix>, Ix>(gr);
 
-        let starting_node = *weight_to_node_id
-            .get(&source_vertex_id)
-            .and_then(|idx| node_index_mapper.get(idx))
-            .expect("Invalid source vertex");
+        let starting_node = match weight_to_node_id.get(&source_vertex_id) {
+            Some(idx) => {
+                println!("{:?}", &idx);
+                match node_index_mapper.get(idx) {
+                    Some(node_idx) => *node_idx,
+                    None => return Err(anyhow!("Node index not found")),
+                }
+            }
+            None => return Err(anyhow!("Invalid source vertex")),
+        };
 
         let distances = dijkstra(&graph, starting_node, None, |e| *e.weight());
         let trimmed_graph = trim_graph_at_max_distance(&mut graph, &distances, max_dist.into());

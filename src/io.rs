@@ -25,7 +25,7 @@ impl<N, E, Ix> GraphRepresentation<N, E, Ix> {
 
 #[derive(Serialize, Deserialize)]
 pub struct EdgeRepresentation<N, E> {
-    pub edge_id: String,
+    pub edge_id: N,
     pub start_node: N,
     pub end_node: N,
     pub weight: E,
@@ -92,7 +92,10 @@ where
     Ix: Eq + PartialEq + Hash + Copy + TryFrom<u32>,
     <Ix as TryFrom<u32>>::Error: Debug,
 {
+    println!("Beginning JSON parsing");
+    //println!("{}", &json_string);
     if let Ok(edges_list) = serde_json::from_str::<Vec<EdgeRepresentation<N, E>>>(&json_string) {
+        println!("Deserialized JSON");
         let mut node_weight_to_index = HashMap::<N, Ix>::new();
         let mut edge_list = Vec::<(Ix, Ix, E)>::new();
         let mut nodes = HashSet::<N>::new();
