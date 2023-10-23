@@ -1,11 +1,20 @@
 pub mod graph;
 pub mod io;
 
+extern crate futures;
+extern crate futures_util;
+
+use futures::future::{self, ok, BoxFuture};
+use futures::task::Poll;
+use futures::Future;
+use futures_util::FutureExt;
 use serde::{Deserialize, Serialize};
+use std::boxed;
 use std::fmt::Debug;
 use std::hash::Hash;
 use std::iter::Sum;
 use std::ops::{Add, AddAssign, Div, Mul, Neg, RemAssign};
+use std::process::Output;
 use std::str::FromStr;
 
 use anyhow::{anyhow, Error};
@@ -34,6 +43,25 @@ pub struct RoutingResults<N> {
     pub lower: Vec<N>,
 }
 
+// impl<N> Future for RoutingResults<N> {
+//     type Output = RoutingResults<N>;
+
+//     fn poll(
+//         self: std::pin::Pin<&mut Self>,
+//         cx: &mut std::task::Context<'_>,
+//     ) -> std::task::Poll<Self::Output> {
+//         Poll::Ready(Self {
+//             upper: self.upper,
+//             lower: self.lower,
+//         })
+//     }
+// }
+fn check_loop_counter(counter: i32) -> Option<i32> {
+    match counter + 1 {
+        1..=50 => Some(counter + 1),
+        _ => None,
+    }
+}
 pub fn make_route_from_dimacs<N, E, Ix>(
     args: CLIArgs,
     return_routes: bool,
@@ -220,8 +248,21 @@ where
                 &trimmed_graph,
                 target_length.into(),
             ) {
+                if &upper_bound.edges.is_empty()
+                    | &upper_bound.vertices.is_empty()
+                    | &lower_bound.edges.is_empty()
+                    | &lower_bound.vertices.is_empty()
+                {
+                    match check_loop_counter(double_path_iterations) {
+                        Some(new) => double_path_iterations = new,
+                        None => {
+                            return Err(anyhow!(
+                                "Unable to locate valid circuit within 50 iterations."
+                            ))
+                        }
+                    }
+                }
                 println!("{:?}", &upper_bound);
-
                 upper_ec = make_euler_circuit::<StableDiGraph<N, E, Ix>, Ix>(
                     &graph,
                     &upper_bound,
@@ -241,12 +282,13 @@ where
                 {
                     break;
                 } else {
-                    double_path_iterations += 1;
-                    println!("Double path iterations: {:}", double_path_iterations);
-                    if double_path_iterations > 50 {
-                        return Err(anyhow!(
-                            "Unable to locate valid circuit within 50 iterations."
-                        ));
+                    match check_loop_counter(double_path_iterations) {
+                        Some(new) => double_path_iterations = new,
+                        None => {
+                            return Err(anyhow!(
+                                "Unable to locate valid circuit within 50 iterations."
+                            ))
+                        }
                     }
                 }
             }
@@ -267,3 +309,125 @@ where
         ))
     }
 }
+
+// pub async fn make_route_from_edges_json_async<N, E, Ix>(
+//     json_string: String,
+//     source_vertex_id: N,
+//     target_length: E,
+// ) -> BoxFuture<'static, Result<RoutingResults<N>, Error>>
+// where
+//     Ix: IndexType + FromStr + From<u32>,
+//     <Ix as FromStr>::Err: Debug,
+//     for<'de> N: Deserialize<'de>,
+//     for<'de> E: Deserialize<'de>,
+//     N: 'static + FromStr + Debug + Eq + Hash + Copy + PartialOrd,
+//     E: 'static
+//         + From<Ix>
+//         + Copy
+//         + Debug
+//         + Measure
+//         + Bounded
+//         + FloatMeasure
+//         + AddAssign
+//         + RemAssign
+//         + Div<f64, Output = E>
+//         + Add<f64, Output = E>
+//         + From<f64>
+//         + Neg<Output = E>
+//         + Mul<Output = E>
+//         + Sum,
+// {
+//     println!("Source vertex ID: {:?}", &source_vertex_id);
+//     println!("Target distance: {:?}", &target_length);
+//     if let Ok((gr, weight_to_node_id)) = read_from_edges_json::<N, E, Ix>(json_string) {
+//         println!("Made graph from provided JSON");
+//         let max_dist = target_length * (0.6.into());
+
+//         let (mut graph, node_index_mapper) =
+//             make_graph::<&'static StableGraph<N, E, Directed, Ix>, Ix>(gr);
+
+//         let starting_node = match weight_to_node_id.get(&source_vertex_id) {
+//             Some(idx) => {
+//                 println!("{:?}", &idx);
+//                 match node_index_mapper.get(idx) {
+//                     Some(node_idx) => *node_idx,
+//                     None => return Err(anyhow!("Node index not found")).boxed(),
+//                 }
+//             }
+//             None => return Err(anyhow!("Invalid source vertex")),
+//         };
+
+//         let distances = dijkstra(&graph, starting_node, None, |e| *e.weight());
+//         let trimmed_graph = trim_graph_at_max_distance(&mut graph, &distances, max_dist.into());
+
+//         let mut upper_ec;
+//         let mut lower_ec;
+//         let mut double_path_iterations = 1;
+//         loop {
+//             if let Some((lower_bound, upper_bound)) = double_path::<StableDiGraph<N, E, Ix>, Ix>(
+//                 starting_node,
+//                 &trimmed_graph,
+//                 target_length.into(),
+//             ) {
+//                 if &upper_bound.edges.is_empty()
+//                     | &upper_bound.vertices.is_empty()
+//                     | &lower_bound.edges.is_empty()
+//                     | &lower_bound.vertices.is_empty()
+//                 {
+//                     match check_loop_counter(double_path_iterations) {
+//                         Some(new) => double_path_iterations = new,
+//                         None => {
+//                             return Err(anyhow!(
+//                                 "Unable to locate valid circuit within 50 iterations."
+//                             ))
+//                         }
+//                     }
+//                 }
+//                 println!("{:?}", &upper_bound);
+//                 upper_ec = make_euler_circuit::<StableDiGraph<N, E, Ix>, Ix>(
+//                     &graph,
+//                     &upper_bound,
+//                     starting_node,
+//                 );
+//                 println!("{:?}", &upper_ec);
+//                 lower_ec = make_euler_circuit::<StableDiGraph<N, E, Ix>, Ix>(
+//                     &graph,
+//                     &lower_bound,
+//                     starting_node,
+//                 );
+
+//                 if upper_ec.ordered_node_weight_list.first()
+//                     == upper_ec.ordered_node_weight_list.last()
+//                     && lower_ec.ordered_node_weight_list.first()
+//                         == lower_ec.ordered_node_weight_list.last()
+//                 {
+//                     break;
+//                 } else {
+//                     match check_loop_counter(double_path_iterations) {
+//                         Some(new) => double_path_iterations = new,
+//                         None => {
+//                             return Err(anyhow!(
+//                                 "Unable to locate valid circuit within 50 iterations."
+//                             ))
+//                         }
+//                     }
+//                 }
+//             }
+//         }
+
+//         let solutions_vector = vec![
+//             upper_ec.ordered_node_weight_list,
+//             lower_ec.ordered_node_weight_list,
+//         ];
+
+//         return Ok(RoutingResults {
+//             upper: solutions_vector[0].clone(),
+//             lower: solutions_vector[1].clone(),
+//         })
+//         .boxed();
+//     } else {
+//         Err(anyhow!(
+//             "Failed to produce valid circuit for provided input."
+//         ))
+//     }
+// }
